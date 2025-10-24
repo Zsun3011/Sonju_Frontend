@@ -17,11 +17,11 @@ const Stack = createNativeStackNavigator();
 function OnboardingNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-      {/* <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="SignUpStep1" component={SignUpStep1Screen} />
       <Stack.Screen name="SignUpStep2" component={SignUpStep2Screen} />
       <Stack.Screen name="AddChildInfo" component={AddChildInfoScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} /> */}
+      <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUpSuccess" component={SignUpSuccess} />
       <Stack.Screen name="FontSizeSelector" component={FontSizeSelector} />
       <Stack.Screen name="SetSonjuNameStep1" component={SetSonjuNameStep1} />

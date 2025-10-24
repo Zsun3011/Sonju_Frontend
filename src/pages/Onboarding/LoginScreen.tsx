@@ -36,6 +36,28 @@ export default function LoginScreen({ navigation }: any) {
       Alert.alert('오류', '비밀번호는 최소 6자리 이상입니다');
       return;
     }
+
+    // 로그인 처리
+    setLoading(true);
+    try {
+      // TODO: 백엔드 API 호출
+      // const response = await authAPI.login({ phone, password });
+      // await AsyncStorage.setItem('token', response.token);
+      
+      // 임시: 로그인 성공 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+      
+      console.log('로그인 성공:', { phone });
+      
+      // SignUpSuccess 화면으로 이동
+      navigation.navigate('SignUpSuccess');
+      
+    } catch (error: any) {
+      console.error('로그인 실패:', error);
+      Alert.alert('로그인 실패', '전화번호 또는 비밀번호가 일치하지 않습니다');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

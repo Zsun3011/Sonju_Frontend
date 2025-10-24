@@ -1,34 +1,100 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { onboardingStyles as s } from '../../styles/Template';
 
 export default function LoginScreen({ navigation }: any) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // 전화번호 포맷팅 함수 (숫자만 추출)
+  const formatPhone = (text: string) => {
+    const numbers = text.replace(/[^0-9]/g, '');
+    return numbers.slice(0, 11);
+  };
+
+  const handlePhoneChange = (text: string) => {
+    const formatted = formatPhone(text);
+    setPhone(formatted);
+  };
+
+  const handleLogin = async () => {
+    // 유효성 검사
+    if (!phone || !password) {
+      Alert.alert('오류', '전화번호와 비밀번호를 입력해주세요');
+      return;
+    }
+
+    // 전화번호 형식 검사
+    if (phone.length !== 11 || !phone.startsWith('010')) {
+      Alert.alert('오류', '올바른 전화번호를 입력해주세요\n(010으로 시작하는 11자리)');
+      return;
+    }
+
+    // 비밀번호 길이 확인
+    if (password.length < 6) {
+      Alert.alert('오류', '비밀번호는 최소 6자리 이상입니다');
+      return;
+    }
+
+    // 로그인 처리
+    setLoading(true);
+    try {
+      // TODO: 백엔드 API 호출
+      // const response = await authAPI.login({ phone, password });
+      // await AsyncStorage.setItem('token', response.token);
+      
+      // 임시: 로그인 성공 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+      
+      console.log('로그인 성공:', { phone });
+      
+      // SignUpSuccess 화면으로 이동
+      navigation.navigate('SignUpSuccess');
+      
+    } catch (error: any) {
+      console.error('로그인 실패:', error);
+      Alert.alert('로그인 실패', '전화번호 또는 비밀번호가 일치하지 않습니다');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>로그인</Text>
+    <View style={s.container1}>
+      <Text style={s.title}>로그인</Text>
+      
       <TextInput
-        style={styles.input}
-        placeholder="전화번호를 입력하세요"
+        style={s.input}
+        placeholder="01012345678"
         value={phone}
-        onChangeText={setPhone}
+        onChangeText={handlePhoneChange}
+        keyboardType="number-pad"
+        maxLength={11}
+        editable={!loading}
       />
+      
       <TextInput
-        style={styles.input}
+        style={s.input}
         placeholder="비밀번호를 입력하세요"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+        autoCapitalize="none"
+        editable={!loading}
       />
-      <Button title="로그인" onPress={() => Alert.alert('로그인 시도')} />
+      
+      <TouchableOpacity 
+        style={s.smallButton} 
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={s.buttonText}>로그인</Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: '600', marginBottom: 24 },
-  input: { width: '80%', borderWidth: 1, borderColor: '#aaa', padding: 10, marginBottom: 16, borderRadius: 8 },
-});

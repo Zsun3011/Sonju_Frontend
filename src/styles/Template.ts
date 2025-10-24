@@ -62,6 +62,13 @@ export const onboardingStyles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
   },
 
+   buttonText2: {
+      color: '#777',
+      fontSize: 18,
+      fontFamily: 'Pretendard-Bold',
+   },
+
+
   smallButton: {
   width: 150,
   height: 50,
@@ -77,9 +84,31 @@ export const onboardingStyles = StyleSheet.create({
     height: 2,
   },
   shadowOpacity: 0.1,
-  shadowRadius: 4,
+  shadowRadius: 10,
   elevation: 3,  // Android 그림자
 },
+
+ smallButton2: {
+  width: 150,
+  height: 50,
+  backgroundColor: '#fff',  // 피그마의 02BFDC
+  borderRadius: 15,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginHorizontal: 10,
+  // 그림자 효과 추가 (외곽선 색상 BFE8E2)
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.1,
+  shadowRadius: 15,
+  elevation: 3,  // Android 그림자
+  borderWidth: 1,
+  borderColor: '#F0F0F0',
+},
+
 
   welcomeImage: {
   width: 200,

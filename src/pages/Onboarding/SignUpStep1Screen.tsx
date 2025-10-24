@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { onboardingStyles as s } from '../../style/Template';
+import { onboardingStyles as s } from '../../styles/Template';
 
 export default function SignUpStep1Screen({ navigation }: any) {
   const [phone, setPhone] = useState('');

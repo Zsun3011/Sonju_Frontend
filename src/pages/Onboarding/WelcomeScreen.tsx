@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { onboardingStyles as s } from '../../style/Template';
+import { onboardingStyles as s } from '../../styles/Template';
 
 export default function WelcomeScreen({ navigation }: any) {
   return (

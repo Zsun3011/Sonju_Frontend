@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { onboardingStyles as s } from '../../style/Template';
+import { onboardingStyles as s } from '../../styles/Template';
 
 export default function LoginScreen({ navigation }: any) {
   const [phone, setPhone] = useState('');

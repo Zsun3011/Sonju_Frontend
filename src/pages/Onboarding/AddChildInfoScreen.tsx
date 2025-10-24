@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { onboardingStyles as s } from '../../style/Template';
+import { onboardingStyles as s } from '../../styles/Template';
 
 export default function AddChildInfoScreen({ route, navigation }: any) {
   // 이전 화면에서 전달받은 데이터

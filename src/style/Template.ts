@@ -24,6 +24,7 @@ export const onboardingStyles = StyleSheet.create({
     fontSize: 32,
     color: '#333',
     marginBottom: 40,
+    textAlign: 'center',  // 가운데 정렬 추가
   },
 
   subtitle: {
@@ -31,6 +32,15 @@ export const onboardingStyles = StyleSheet.create({
     fontSize: 24,
     color: '#777',
     marginTop: 10,
+  },
+
+  maintext: {
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 20,
+    color: '#777',
+    marginTop: 10,
+    textAlign: 'left',
+    marginBottom: 15,
   },
 
   input: {

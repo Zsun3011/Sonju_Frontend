@@ -5,6 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import OnboardingNavigator from './navigation/OnboardingNavigator';
 import { FontSizeProvider } from './contexts/FontSizeContext';
+import { ChatProvider } from './src/store/ChatContext';
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -19,4 +21,14 @@ export default function App() {
       </FontSizeProvider>
     </SafeAreaProvider>
   );
+
+  export default function App() {
+    return (
+      <ChatProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </ChatProvider>
+    );
+  };
 }

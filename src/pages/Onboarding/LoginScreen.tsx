@@ -41,8 +41,7 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
     try {
       // TODO: 백엔드 API 호출
-      // const response = await authAPI.login({ phone, password });
-      // await AsyncStorage.setItem('token', response.token);
+
       
       // 임시: 로그인 성공 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기

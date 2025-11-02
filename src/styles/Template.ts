@@ -119,6 +119,63 @@ export const onboardingStyles = StyleSheet.create({
   borderColor: '#F0F0F0',
 },
 
+scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
+
+  // 성별 선택
+  genderContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+    marginBottom: 15,
+  },
+  genderButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  genderButtonActive: {
+    backgroundColor: '#02BFDC',
+    borderColor: '#02BFDC',
+  },
+  genderText: {
+    fontSize: 16,
+    fontFamily: 'Pretendard-Medium',
+    color: '#333',
+  },
+  genderTextActive: {
+    color: '#fff',
+  },
+
+  // 비밀번호 가이드
+  passwordGuide: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Regular',
+    color: '#666',
+    marginBottom: 20,
+    lineHeight: 22,
+    alignSelf: 'flex-start',
+    width: '100%',
+  },
+
+  // 재발송 버튼
+  resendButton: {
+    marginTop: 16,
+  },
+  resendButtonText: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Medium',
+    color: '#02BFDC',
+    textDecorationLine: 'underline',
+  },
+
 
   welcomeImage: {
   width: 200,

@@ -7,32 +7,32 @@ function setNewPassword(name, presentPassword, newPassword, poolData) {
     return new Promise((resolve, reject) => {
         const userPool = new CognitoUserPool(poolData);
 
-            const authDetails = new AuthenticationDetails({
-                Username: name,
-                Password: presentPassword,
-            });
-
-            const cognitoUser = new CognitoUser({
-                Username: name,
-                Pool: userPool,
-            });
-
-            cognitoUser.authenticateUser(authDetails, {
-                onSuccess: (result) => {
-                    // 로그인 성공 후 세션을 가져와서 비밀번호 변경
-                    cognitoUser.getSession((err, session) => {
-                        if (err) return reject('sessionFailed');
-                        if (!session.isValid()) return reject('sessionInvalid');
-
-                        cognitoUser.changePassword(presentPassword, newPassword, (err, result) => {
-                            if (err) return reject('changePasswordError');
-                            resolve('passwordSet');
-                        });
-                    });
-                  },
-                onFailure: (err) => reject('authenticateFailed'),
-            });
+        const authDetails = new AuthenticationDetails({
+            Username: name,
+            Password: presentPassword,
         });
+
+        const cognitoUser = new CognitoUser({
+            Username: name,
+            Pool: userPool,
+        });
+
+        cognitoUser.authenticateUser(authDetails, {
+            onSuccess: (result) => {
+                // 로그인 성공 후 세션을 가져와서 비밀번호 변경
+                cognitoUser.getSession((err, session) => {
+                    if (err) return reject('sessionFailed');
+                    if (!session.isValid()) return reject('sessionInvalid');
+
+                    cognitoUser.changePassword(presentPassword, newPassword, (err, result) => {
+                        if (err) return reject('changePasswordError');
+                        resolve('passwordSet');
+                    });
+                });
+              },
+            onFailure: (err) => reject('authenticateFailed'),
+        });
+    });
 }
 
 
@@ -62,18 +62,6 @@ export default function AddChildInfoScreen({ route, navigation }: any) {
           Alert.alert('오류', '비밀번호가 일치하지 않습니다');
           return;
         }
-
-        /*
-        // 4. 최종 회원가입 데이터
-        const signUpData = {
-          name: name,
-          phone: phone,
-          verificationCode: verificationCode,
-          password: password
-        };
-
-        console.log('회원가입 데이터:', signUpData);
-        */
 
         // TODO: 백엔드 API 호출
         try {

@@ -22,6 +22,8 @@ function userPoolSignUp(name, phone, password, pool) {
                 {Name: 'birthdate', Value: '1970-01-01'}], //임시값이라 지정 필요
             null, // validationData
             (err, result) => { // callback
+
+
                 if (err) {
                     console.log(err);
                     return reject(false);
@@ -29,8 +31,35 @@ function userPoolSignUp(name, phone, password, pool) {
                 else {
                     resolve(true);
                 }
-            }
-        );
+                /*
+                if (err) {
+                    //console.error(err);
+                    return reject(err);
+                }
+                else {
+                    const cognito_id = result.userSub;
+
+
+                    result.user.getUserAttributes((attrErr, attributes) => {
+                        if (attrErr) return reject(attrErr);
+
+                        const attrMap = {};
+                        attributes.forEach(a => { attrMap[a.getName()] = a.getValue(); });
+                        console.log("회원가입 성공: 정보", result);
+
+                        return resolve({
+                            cognito_id: cognito_id,
+                            name: attrMap.name,
+                            gender:attrMap.gender,
+                            birthdate: attrMap.birthdate,
+                            phone_number: attrMap.phone_number
+                        });
+
+                    });
+
+                }
+            */
+            });
     });
 }
 
@@ -66,11 +95,31 @@ export default function SignUpStep1Screen({ navigation }: any) {
 
         try {
             const signed = await userPoolSignUp(name, '+82' + phone.substring(1), tempPassword, poolData); // E.164 포맷으로 변경 ex. +821012345678
+
+
             if (!signed) {
                 Alert.alert('오류', '이미 등록된 전화번호입니다');
                 return;
             }
+
+
+            /*
+            console.log("response 정보:", signed);
+            const response = await fetch("http://ec2-13-125-2-245.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(signed)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                Alert.alert('회원가입 실패', error.details);
+                return;
+            }
+            */
         } catch (err) {
+            console.error("에러가 발생했습니다.",err);
             Alert.alert('오류', '오류가 발생했습니다');
             return;
         }

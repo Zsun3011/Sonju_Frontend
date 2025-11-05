@@ -54,7 +54,8 @@ function getUserInfo(name, password, poolData) {
                         name: attrMap.name,
                         gender:attrMap.gender,
                         birthdate: attrMap.birthdate,
-                        phone_number: attrMap.phone_number
+                        phone_number: attrMap.phone_number,
+                        point: 0
                     });
                 });
             },
@@ -84,7 +85,7 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
             }
             const userInfo = await getUserInfo('+82' + phone.substring(1), tempPassword, poolData);
             console.log(userInfo);
-            const response = await fetch("http://ec2-13-125-2-245.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
+            const response = await fetch("http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

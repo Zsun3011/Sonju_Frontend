@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../pages/Onboarding/WelcomeScreen';
 import SignUpStep1Screen from '../pages/Onboarding/SignUpStep1Screen';
 import SignUpStep2Screen from '../pages/Onboarding/SignUpStep2Screen';
-import SignUpStep3Screen from '@/pages/Onboarding/SignUpStep3Screen';
+import SignUpStep3Screen from '../pages/Onboarding/SignUpStep3Screen';
 import LoginScreen from '../pages/Onboarding/LoginScreen';
 import SignUpSuccess from '../pages/Onboarding/SignUpSuccess';
 import FontSizeSelector from '../pages/Onboarding/FontSizeSelector';

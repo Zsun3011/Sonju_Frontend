@@ -76,7 +76,7 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
 
   return (
     <View style={s.container1}>
-      <Text style={s.title}>비밀번호를{'\n'}설정해주세요</Text>
+      <Text style={s.title}>비밀번호를 설정해주세요</Text>
 
       <Text style={s.passwordGuide}>
         • 8자리 이상{'\n'}

@@ -1,10 +1,11 @@
+// src/navigation/RootNavigator.tsx
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
 import OnboardingNavigator from './OnboardingNavigator';
-import MainTabNavigator from '../components/MainTabNavigator';
+import MainNavigator from './MainNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,7 +41,7 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isLoggedIn ? (
-        <Stack.Screen name="Main" component={MainTabNavigator} />
+        <Stack.Screen name="Main" component={MainNavigator} />
       ) : (
         <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
       )}

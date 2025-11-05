@@ -12,9 +12,9 @@ export default function NotificationPage() {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.backText}>← 뒤로</Text>
+        <Text style={styles.backText}>← 알림</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>알림</Text>
+      <Text style={styles.title}>추후개발</Text>
     </View>
   );
 }
@@ -30,8 +30,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backText: {
-    fontSize: 18,
-    color: '#02BFDC',
+    fontSize: 24,
+    fontFamily: 'Pretendard-Medium',
+    color: '#000000',
   },
   title: {
     fontSize: 32,

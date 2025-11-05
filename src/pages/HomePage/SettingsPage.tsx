@@ -12,9 +12,9 @@ export default function SettingsPage() {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.backText}>← 뒤로</Text>
+        <Text style={styles.backText}>← 설정</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>설정</Text>
+      <Text style={styles.title}>추후 개발</Text>
     </View>
   );
 }
@@ -30,8 +30,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backText: {
-    fontSize: 18,
-    color: '#02BFDC',
+      fontSize: 24,
+      fontFamily: 'Pretendard-Medium',
+      color: '#000000',
   },
   title: {
     fontSize: 32,

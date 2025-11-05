@@ -1,5 +1,7 @@
+// src/pages/Onboarding/CharacterSetting.tsx
 import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../../styles/Onboarding';
 import { onboardingStyles } from '../../styles/Template';
 import ScaledText from '../../components/ScaledText';
@@ -21,15 +23,13 @@ export default function CharacterSetting({ route, navigation }: any) {
     interests: ['뉴스', '요리', '운동', '취미추천'],
   };
 
-  // 기본값: 각 카테고리의 첫 번째 항목 선택
   const [selectedTraits, setSelectedTraits] = useState<CharacterTraits>({
     personality: traitOptions.personality[0],
     speech: traitOptions.speech[0],
     emotions: traitOptions.emotions[0],
-    interests: [], // 관심사는 빈 배열로 시작
+    interests: [],
   });
 
-  // 단일 선택 (성격, 말투, 감정표현)
   const selectSingleTrait = (category: 'personality' | 'speech' | 'emotions', trait: string) => {
     setSelectedTraits(prev => ({
       ...prev,
@@ -37,7 +37,6 @@ export default function CharacterSetting({ route, navigation }: any) {
     }));
   };
 
-  // 다중 선택 (관심사만)
   const toggleInterest = (interest: string) => {
     setSelectedTraits(prev => {
       const currentInterests = prev.interests;
@@ -57,7 +56,6 @@ export default function CharacterSetting({ route, navigation }: any) {
 
   const handleComplete = async () => {
     try {
-      // 백엔드로 전송할 데이터
       const characterData = {
         name: sonjuName,
         personality: selectedTraits.personality,
@@ -68,14 +66,35 @@ export default function CharacterSetting({ route, navigation }: any) {
 
       console.log('전송할 데이터:', characterData);
 
-      Alert.alert('완료', '손주 캐릭터가 생성되었습니다!');
+      // TODO: 백엔드 API 호출
+      // await api.createCharacter(characterData);
+
+      // ✅ 온보딩 완료 플래그 저장
+      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+
+      // ✅ 임시 토큰 저장 (실제로는 로그인/회원가입 시 받은 토큰 사용)
+      await AsyncStorage.setItem('userToken', 'temp_token_123');
+
+      Alert.alert(
+        '완료',
+        '손주 캐릭터가 생성되었습니다!',
+        [
+          {
+            text: '확인',
+            onPress: () => {
+              // ✅ RootNavigator가 자동으로 MainTabNavigator로 전환됨
+              // navigation.reset 대신 단순 navigate 사용
+              navigation.navigate('Main');
+            }
+          }
+        ]
+      );
     } catch (error) {
       console.error('캐릭터 생성 오류:', error);
       Alert.alert('오류', '캐릭터 생성에 실패했습니다.');
     }
   };
 
-    // 성격, 말투, 감정표현은 단일 선택
   const renderSingleSelectSection = (
     title: string,
     category: 'personality' | 'speech' | 'emotions',
@@ -114,7 +133,6 @@ export default function CharacterSetting({ route, navigation }: any) {
     </View>
   );
 
-    //관심사는 복수 선택 가능
   const renderMultiSelectSection = (
     title: string,
     options: string[]

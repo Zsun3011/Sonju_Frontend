@@ -90,7 +90,7 @@ export default function LoginScreen({ navigation }: any) {
       console.log('Cognito 로그인 성공:', { phone });
 
       // 2. 백엔드에서 사용자 프로필 확인 (손주 정보 설정 여부 확인)
-      const profileResponse = await fetch(`http://ec2-13-125-2-245.ap-northeast-2.compute.amazonaws.com:8000/user/profile?phone=${encodeURIComponent('+82' + phone.substring(1))}`, {
+      const profileResponse = await fetch(`http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/user/profile?phone=${encodeURIComponent('+82' + phone.substring(1))}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

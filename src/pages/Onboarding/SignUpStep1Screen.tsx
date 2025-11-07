@@ -1,51 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { onboardingStyles as s } from '../../styles/Template';
-import { CognitoUserPool, CognitoUserAttribute, ICognitoUserPoolData } from 'amazon-cognito-identity-js';
+import { ICognitoUserPoolData } from 'amazon-cognito-identity-js';
 
 const poolData: ICognitoUserPoolData = {
     UserPoolId: 'ap-northeast-1_Frx61b697',
     ClientId: '4mse47h6vme901667vuqb185vo',
 };
 
-function userPoolSignUp(name: string, phone: string, gender: string, birthDate: string, password: string, pool: ICognitoUserPoolData): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-        const userPool = new CognitoUserPool(pool);
-
-        // 생년월일을 YYYY-MM-DD 형식으로 변환
-        const formattedBirthDate = `${birthDate.slice(0, 4)}-${birthDate.slice(4, 6)}-${birthDate.slice(6, 8)}`;
-
-        const attributeList = [
-            new CognitoUserAttribute({ Name: 'phone_number', Value: phone }),
-            new CognitoUserAttribute({ Name: 'name', Value: name }),
-            new CognitoUserAttribute({ Name: 'gender', Value: gender }),
-            new CognitoUserAttribute({ Name: 'birthdate', Value: formattedBirthDate }),
-        ];
-
-        userPool.signUp(
-            phone, // username
-            password, // password
-            attributeList, // attributes
-            [], // validationData
-            (err, result) => {
-                if (err) {
-                    console.log('Cognito SignUp Error:', err);
-                    return reject(err);
-                }
-                else {
-                    resolve(true);
-                }
-            });
-    });
-}
-
 export default function SignUpStep1Screen({ navigation }: any) {
   const [name, setName] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [birthDate, setBirthDate] = useState('');
   const [phone, setPhone] = useState('');
-
-  const tempPassword = '1234abcdABCD@#'; // 비밀번호는 대소문자와 특수기호를 포함해야 함.
 
   // 전화번호 포맷팅
   const formatPhone = (text: string) => {
@@ -111,32 +78,13 @@ export default function SignUpStep1Screen({ navigation }: any) {
       return;
     }
 
-    try {
-      await userPoolSignUp(name, '+82' + phone.substring(1), gender, birthDate, tempPassword, poolData); // E.164 포맷으로 변경 ex. +821012345678
-    } catch (err: any) {
-      console.error("회원가입 에러:", err);
-
-      // Cognito 에러 메시지 처리
-      if (err.code === 'UsernameExistsException') {
-        Alert.alert('오류', '이미 등록된 전화번호입니다');
-      } else if (err.code === 'InvalidParameterException') {
-        Alert.alert('오류', '입력 정보를 확인해주세요');
-      } else if (err.code === 'InvalidPasswordException') {
-        Alert.alert('오류', '비밀번호 형식이 올바르지 않습니다');
-      } else {
-        Alert.alert('오류', err.message || '회원가입 중 오류가 발생했습니다');
-      }
-      return;
-    }
-
-    // 다음 단계로 데이터 전달
+    // 다음 단계(비밀번호 입력)로 데이터 전달
     navigation.navigate('SignUpStep2', {
       name: name.trim(),
       gender,
       birthDate,
       phone,
-      poolData: poolData,
-      tempPassword: tempPassword
+      poolData: poolData
     });
   };
 

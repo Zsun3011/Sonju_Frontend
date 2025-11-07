@@ -105,7 +105,8 @@ function getUserInfo(
                         name: attrMap.name,
                         gender: attrMap.gender,
                         birthdate: attrMap.birthdate,
-                        phone_number: attrMap.phone_number
+                        phone_number: attrMap.phone_number,
+                        point: 0
                     });
                 });
             },
@@ -153,10 +154,8 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
 
             // 2. Cognito에서 사용자 정보 가져오기
             const userInfo = await getUserInfo('+82' + phone.substring(1), tempPassword, poolData);
-            console.log('사용자 정보:', userInfo);
-
-            // 3. 백엔드로 회원가입 요청
-            const response = await fetch("http://ec2-13-125-2-245.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
+            console.log(userInfo);
+            const response = await fetch("http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

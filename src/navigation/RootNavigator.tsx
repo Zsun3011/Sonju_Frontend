@@ -8,6 +8,9 @@ import MainTabNavigator from '../components/MainTabNavigator';
 
 const Stack = createNativeStackNavigator();
 
+// 디버깅 모드: true로 설정하면 온보딩 건너뛰고 바로 메인으로 이동
+const DEBUG_MODE = false;
+
 export default function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -18,6 +21,13 @@ export default function RootNavigator() {
 
   const checkLoginStatus = async () => {
     try {
+      // 디버깅 모드일 때는 로그인 상태 체크 건너뛰기
+      if (DEBUG_MODE) {
+        setIsLoggedIn(true);
+        setIsLoading(false);
+        return;
+      }
+
       const token = await AsyncStorage.getItem('userToken');
       const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
 

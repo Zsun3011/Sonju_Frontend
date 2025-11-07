@@ -1,31 +1,62 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, LogBox } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { onboardingStyles as s } from '../../styles/Template';
-import { CognitoUser, CognitoUserPool, AuthenticationDetails, } from 'amazon-cognito-identity-js';
-
+import { CognitoUser, CognitoUserPool, AuthenticationDetails } from 'amazon-cognito-identity-js';
 
 function verify(
   name: string,
   poolData: { UserPoolId: string; ClientId: string },
   code: string
 ): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const userPool = new CognitoUserPool(poolData);
+    const cognitoUser = new CognitoUser({
+      Username: name,
+      Pool: userPool,
+    });
+
+    cognitoUser.confirmRegistration(code, true, (err, result) => {
+      if (err) {
+        const msg = err.message || '';
+        console.error('인증번호 확인 실패:', msg);
+
+        // ✅ 이미 인증된 계정이면 성공으로 간주
+        if (msg.includes('Current status is CONFIRMED') || msg.includes('cannot be confirmed')) {
+          console.log('이미 인증된 사용자 → 정상 처리로 간주');
+          resolve(true);
+          return;
+        }
+
+        reject(new Error(msg || '인증번호 확인 실패'));
+        return;
+      }
+
+      console.log('인증번호 확인 성공:', result);
+      resolve(true);
+    });
+  });
+}
+
+
+function resendVerificationCode(
+  name: string,
+  poolData: { UserPoolId: string; ClientId: string }
+): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const userPool = new CognitoUserPool(poolData);
-
-        console.log('Cognito 인증 요청 username:', name);
 
         const cognitoUser = new CognitoUser({
           Username: name,
           Pool: userPool,
         });
 
-        cognitoUser.confirmRegistration(code, true, (err, result) => {
+        cognitoUser.resendConfirmationCode((err, result) => {
             if (err) {
-                console.error('인증번호 확인 실패:', JSON.stringify(err, null, 2));
-                reject(new Error(err.message || '인증번호 확인 실패'));
+                console.error('인증번호 재전송 실패:', err);
+                reject(new Error(err.message || '인증번호 재전송 실패'));
                 return;
             }
-            console.log('인증번호 확인 성공:', result);
+            console.log('인증번호 재전송 성공:', result);
             resolve(true);
         });
     });
@@ -90,6 +121,20 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
     // Step1에서 전달받은 데이터
     const { phone, poolData, tempPassword } = route.params || {};
     const [code, setCode] = useState('');
+    const [isResending, setIsResending] = useState(false);
+
+    const handleResendCode = async () => {
+        setIsResending(true);
+        try {
+            await resendVerificationCode('+82' + phone.substring(1), poolData);
+            Alert.alert('성공', '인증번호가 재전송되었습니다.\n전화번호를 확인해주세요.');
+        } catch (err: any) {
+            console.error('인증번호 재전송 실패:', err);
+            Alert.alert('오류', err.message || '인증번호 재전송에 실패했습니다');
+        } finally {
+            setIsResending(false);
+        }
+    };
 
     const handleNext = async () => {
         // 유효성 검사
@@ -100,8 +145,8 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
 
         try {
             // 1. 인증번호 확인
-            const state = await verify('+82' + phone.substring(1), poolData, code);
-            if (!state) {
+            const verified = await verify('+82' + phone.substring(1), poolData, code);
+            if (!verified) {
                 Alert.alert('오류', '전화번호 인증에 실패했습니다');
                 return;
             }
@@ -138,7 +183,26 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
 
         } catch (err: any) {
             console.error('회원가입 에러:', err);
-            Alert.alert('오류', err.message || '오류가 발생했습니다');
+
+            // 인증번호 오류일 경우 재전송 옵션 제공
+            if (err.message && err.message.includes('인증번호')) {
+                Alert.alert(
+                    '인증 실패',
+                    '인증번호가 일치하지 않습니다.\n인증번호를 재전송하시겠습니까?',
+                    [
+                        {
+                            text: '취소',
+                            style: 'cancel'
+                        },
+                        {
+                            text: '재전송',
+                            onPress: handleResendCode
+                        }
+                    ]
+                );
+            } else {
+                Alert.alert('오류', err.message || '오류가 발생했습니다');
+            }
             return;
         }
     };
@@ -159,6 +223,16 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
                 />
                 <TouchableOpacity style={s.smallButton} onPress={handleNext}>
                     <Text style={s.buttonText}>다음으로</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[s.smallButton, { backgroundColor: '#888', marginTop: 10 }]}
+                    onPress={handleResendCode}
+                    disabled={isResending}
+                >
+                    <Text style={s.buttonText}>
+                        {isResending ? '전송 중...' : '인증번호 재전송'}
+                    </Text>
                 </TouchableOpacity>
             </View>
         );

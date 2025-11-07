@@ -25,17 +25,26 @@ function logIn(name, password, poolData) {
 
         cognitoUser.authenticateUser(authDetails, {
             onSuccess: (result) => {
-                // 작업 필요
                 console.log(result);
-                return resolve(true);
+                const tokens = {
+                          accessToken: result.getAccessToken().getJwtToken(),
+                          idToken: result.getIdToken().getJwtToken(),
+                          refreshToken: result.getRefreshToken().getToken(),
+                };
+                console.log("보내는 Access Token:", tokens.accessToken);
+                return resolve(tokens);
             },
             onFailure: (err) => {
                 console.error(err);
-                return reject(false);
+                return reject(err);
             },
-            newPasswordRequired: () => {
-                console.error("newPasswordRequired");
-                return reject(false);
+            newPasswordRequired: (userAttributes, requiredAttributes) => {
+                return reject({
+                    code: "NewPasswordRequired",
+                    message: "새 비밀번호가 필요합니다.",
+                    userAttributes,
+                    requiredAttributes
+                });
             },
         });
     });
@@ -83,11 +92,27 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
     try {
       // TODO: 백엔드 API 호출
-      const signed  = await logIn('+82' + phone.substring(1), password, myPoolData);
-      if (!signed) {
-        Alert.alert('에러', '로그인에 실패했습니다');
-        console.err("에러");
-        return;
+      console.log(phone);
+      const tokens = await logIn('+82' + phone.substring(1), password, myPoolData);
+      console.log(tokens);
+      console.log("Authorization 헤더:",
+          `Bearer ${tokens.accessToken}`
+      );
+      const response = await fetch("http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8002/auth/login", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+              token: tokens.idToken,
+          }),
+      });
+      console.log(response);
+      if (!response.ok) {
+          const error = await response.json();
+          console.error(error.detail);
+          Alert.alert('로그인 실패');
+          return;
       }
       // 임시: 로그인 성공 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기

@@ -4,9 +4,15 @@ import { onboardingStyles as s } from '../../styles/Template';
 import { CognitoUser, CognitoUserPool, AuthenticationDetails, } from 'amazon-cognito-identity-js';
 
 
-function verify(name, poolData, code) {
+function verify(
+  name: string,
+  poolData: { UserPoolId: string; ClientId: string },
+  code: string
+): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const userPool = new CognitoUserPool(poolData);
+
+        console.log('Cognito 인증 요청 username:', name);
 
         const cognitoUser = new CognitoUser({
           Username: name,
@@ -14,18 +20,30 @@ function verify(name, poolData, code) {
         });
 
         cognitoUser.confirmRegistration(code, true, (err, result) => {
-
             if (err) {
-                console.error("에러", JSON.stringify(err, null, 2));
-                return reject(false);
+                console.error('인증번호 확인 실패:', JSON.stringify(err, null, 2));
+                reject(new Error(err.message || '인증번호 확인 실패'));
+                return;
             }
+            console.log('인증번호 확인 성공:', result);
             resolve(true);
-
         });
     });
 }
 
-function getUserInfo(name, password, poolData) {
+interface UserInfo {
+  cognito_id: string;
+  name: string;
+  gender: string;
+  birthdate: string;
+  phone_number: string;
+}
+
+function getUserInfo(
+  name: string,
+  password: string,
+  poolData: { UserPoolId: string; ClientId: string }
+): Promise<UserInfo> {
     return new Promise((resolve, reject) => {
         const userPool = new CognitoUserPool(poolData);
 
@@ -43,30 +61,35 @@ function getUserInfo(name, password, poolData) {
             onSuccess: (result) => {
                 cognitoUser.getUserAttributes((attrErr, attributes) => {
                     if (attrErr) {
-                        console.error(attrErr);
-                        return reject(attrErr);
+                        console.error('사용자 정보 가져오기 실패:', attrErr);
+                        reject(new Error(attrErr.message || '사용자 정보 가져오기 실패'));
+                        return;
                     }
                     const attrMap: any = {};
-                    attributes.forEach(a => { attrMap[a.getName()] = a.getValue(); });
+                    attributes?.forEach(a => { attrMap[a.getName()] = a.getValue(); });
 
-                    return resolve({
+                    console.log('사용자 정보 가져오기 성공');
+                    resolve({
                         cognito_id: attrMap.sub,
                         name: attrMap.name,
-                        gender:attrMap.gender,
+                        gender: attrMap.gender,
                         birthdate: attrMap.birthdate,
                         phone_number: attrMap.phone_number,
                         point: 0
                     });
                 });
             },
-            onFailure: (err) => reject(err)
+            onFailure: (err) => {
+                console.error('인증 실패:', err);
+                reject(new Error(err.message || '인증 실패'));
+            }
         });
     });
 }
 
 export default function SignUpStep2Screen({ route, navigation }: any) {
     // Step1에서 전달받은 데이터
-    const { phone, name, poolData, tempPassword } = route.params || {};
+    const { phone, poolData, tempPassword } = route.params || {};
     const [code, setCode] = useState('');
 
     const handleNext = async () => {
@@ -76,13 +99,15 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
             return;
         }
 
-        // TODO: 여기서 백엔드에 인증번호 검증 API 호출
         try {
+            // 1. 인증번호 확인
             const state = await verify('+82' + phone.substring(1), poolData, code);
             if (!state) {
                 Alert.alert('오류', '전화번호 인증에 실패했습니다');
                 return;
             }
+
+            // 2. Cognito에서 사용자 정보 가져오기
             const userInfo = await getUserInfo('+82' + phone.substring(1), tempPassword, poolData);
             console.log(userInfo);
             const response = await fetch("http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
@@ -92,29 +117,29 @@ export default function SignUpStep2Screen({ route, navigation }: any) {
                 },
                 body: JSON.stringify(userInfo)
             });
-            console.log(response);
+
             if (!response.ok) {
                 const error = await response.json();
-                console.error(error.detail);
-                Alert.alert('회원가입 실패');
+                console.error('백엔드 회원가입 실패:', error.detail);
+                Alert.alert('회원가입 실패', '서버 오류가 발생했습니다');
                 return;
             }
-        } catch (err) {
-            console.error(err);
-            Alert.alert('오류', '에러가 발생했습니다');
+
+            console.log('회원가입 완료');
+
+            // 4. 회원가입 완료 - 손주 정보 설정으로 이동
+            Alert.alert('성공', '회원가입이 완료되었습니다!', [
+                {
+                    text: '확인',
+                    onPress: () => navigation.navigate('SignUpSuccess')
+                }
+            ]);
+
+        } catch (err: any) {
+            console.error('회원가입 에러:', err);
+            Alert.alert('오류', err.message || '오류가 발생했습니다');
             return;
         }
-        // 다음 화면으로 데이터 전달
-        navigation.navigate(
-            'AddChildInfo',
-            {
-                phone: phone,
-                name: name,
-                verificationCode: code,
-                poolData: poolData,
-                tempPassword: tempPassword
-            }
-        );
     };
 
         return (

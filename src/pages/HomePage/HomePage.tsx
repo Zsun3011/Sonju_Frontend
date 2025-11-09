@@ -1,4 +1,4 @@
-// src/pages/HomePage/HomePage.tsx
+// src/pages/HomePage/HomePage.tsx (업데이트)
 import React from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -6,13 +6,14 @@ import ScaledText from '../../components/ScaledText';
 import { styles } from '../../styles/Home';
 
 export default function HomePage() {
-  const navigation = useNavigation<any>(); // useNavigation 훅 사용
+  const navigation = useNavigation<any>();
 
   const quickMenus = [
     {
       id: 1,
       title: '건강',
-      image: require('../../../assets/images/건강아이콘.png')
+      image: require('../../../assets/images/건강아이콘.png'),
+      onPress: () => navigation.navigate('Health'),
     },
     {
       id: 2,
@@ -46,6 +47,7 @@ export default function HomePage() {
             <TouchableOpacity
               key={menu.id}
               style={[styles.quickMenu]}
+              onPress={menu.onPress}
             >
               <Image
                 source={menu.image}

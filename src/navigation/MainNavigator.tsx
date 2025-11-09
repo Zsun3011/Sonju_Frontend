@@ -4,6 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MainTabNavigator from '../components/MainTabNavigator';
 import SettingsPage from '../pages/HomePage/SettingsPage';
 import NotificationPage from '../pages/HomePage/NotificationPage';
+import HealthPage from '../pages/HealthPage/HealthPage';
+import MedicationSettings from '../pages/HealthPage/MedicationSettings';
+import HealthDiaryEntry from '../pages/HealthPage/HealthDiaryEntry';
+import HealthDiaryList from '../pages/HealthPage/HealthDiaryList';
+import ManualMedicationEntry from '../pages/HealthPage/ManualMedicationEntry';
+import PrescriptionOCR from '../pages/HealthPage/PrescriptionOCR';
+import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +29,7 @@ export default function MainNavigator() {
         component={SettingsPage}
         options={{
           animation: 'slide_from_right',
-          presentation: 'card', // 전체 화면으로 표시
+          presentation: 'card',
         }}
       />
       <Stack.Screen
@@ -30,7 +37,67 @@ export default function MainNavigator() {
         component={NotificationPage}
         options={{
           animation: 'slide_from_right',
-          presentation: 'card', // 전체 화면으로 표시
+          presentation: 'card',
+        }}
+      />
+
+      {/* 건강 관련 페이지들 */}
+      <Stack.Screen
+        name="Health"
+        component={HealthPage}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="MedicationSettings"
+        component={MedicationSettings}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="HealthDiaryEntry"
+        component={HealthDiaryEntry}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="HealthDiaryList"
+        component={HealthDiaryList}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+        }}
+      />
+
+      {/* 복약 관련 추가 페이지들 */}
+      <Stack.Screen
+        name="ManualMedicationEntry"
+        component={ManualMedicationEntry}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="PrescriptionOCR"
+        component={PrescriptionOCR}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="MedicationResultConfirm"
+        component={MedicationResultConfirm}
+        options={{
+          animation: 'slide_from_right',
+          presentation: 'card',
         }}
       />
     </Stack.Navigator>

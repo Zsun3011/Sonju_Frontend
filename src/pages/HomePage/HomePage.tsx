@@ -1,10 +1,13 @@
 // src/pages/HomePage/HomePage.tsx
 import React from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import ScaledText from '../../components/ScaledText';
 import { styles } from '../../styles/Home';
 
-export default function HomePage({ navigation }: any) {
+export default function HomePage() {
+  const navigation = useNavigation<any>(); // useNavigation 훅 사용
+
   const quickMenus = [
     {
       id: 1,
@@ -25,17 +28,17 @@ export default function HomePage({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-    {/* 배경 이미지 */}
+      {/* 배경 이미지 */}
       <Image
         source={require('../../../assets/images/배경.png')}
         style={styles.backgroundImage}
         resizeMode="cover"
       />
       <Image
-          source={require('../../../assets/images/배경2.png')}
-          style={styles.backgroundImage2}
-          resizeMode="cover"
-        />
+        source={require('../../../assets/images/배경2.png')}
+        style={styles.backgroundImage2}
+        resizeMode="cover"
+      />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* 퀵 메뉴 */}
         <View style={styles.quickMenuContainer}>
@@ -64,71 +67,82 @@ export default function HomePage({ navigation }: any) {
 
           {/* 캐릭터 이미지 */}
           <View style={styles.characterContainer}>
-          <Image
-            source={require('../../../assets/images/sonjusmile.png')}
-            style={styles.characterImage}
-            resizeMode="contain"
-          />
-
-          {/* 메시지 아이콘 */}
-          <TouchableOpacity style={styles.messageButton} onPress={() => navigation.navigate('Chat')}>
             <Image
-              source={require('../../../assets/images/말풍선아이콘.png')}
-              style={styles.messageIcon}
+              source={require('../../../assets/images/sonjusmile.png')}
+              style={styles.characterImage}
               resizeMode="contain"
             />
-            <View style={styles.badge} />
-          </TouchableOpacity>
-        </View>
+
+            {/* 메시지 아이콘 */}
+            <TouchableOpacity
+              style={styles.messageButton}
+              onPress={() => navigation.navigate('Chat')}
+            >
+              <Image
+                source={require('../../../assets/images/말풍선아이콘.png')}
+                style={styles.messageIcon}
+                resizeMode="contain"
+              />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
 
           {/* 포인트 영역 */}
           <View style={styles.pointContainer}>
             <View style={styles.pointSection}>
-                <ScaledText fontSize={24} style={styles.pointText}>
-                  18 포인트
-                </ScaledText>
-                <Image
-                  source={require('../../../assets/images/코인.png')}
-                  style={styles.Icons}
-                />
+              <ScaledText fontSize={24} style={styles.pointText}>
+                18 포인트
+              </ScaledText>
+              <Image
+                source={require('../../../assets/images/코인.png')}
+                style={styles.Icons}
+              />
             </View>
-                <TouchableOpacity style={styles.pointSection}>
-                  <ScaledText fontSize={18} style={styles.pointButton}>
-                    꾸미기
-                  </ScaledText>
-                  <Image
-                      source={require('../../../assets/images/오른쪽화살표.png')}
-                      style={styles.Icons}
-                  />
-                </TouchableOpacity>
+            <TouchableOpacity style={styles.pointSection}>
+              <ScaledText fontSize={18} style={styles.pointButton}>
+                꾸미기
+              </ScaledText>
+              <Image
+                source={require('../../../assets/images/오른쪽화살표.png')}
+                style={styles.Icons}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
       <View style={styles.leftButtonsContainer}>
-          {/* 설정 버튼 */}
-          <TouchableOpacity
-            style={styles.leftButton}
-            onPress={() => navigation.navigate('')}
-          >
-            <Image
-              source={require('../../../assets/images/설정아이콘.png')}
-              style={styles.buttonIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
+        {/* 설정 버튼 */}
+        <TouchableOpacity
+          style={styles.leftButton}
+          onPress={() => {
+            console.log('설정 버튼 클릭');
+            navigation.navigate('Settings');
+          }}
+        >
+          <Image
+            source={require('../../../assets/images/설정아이콘.png')}
+            style={styles.buttonIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-          {/* 알림 버튼 */}
-          <TouchableOpacity style={styles.leftButton}>
-            <Image
-              source={require('../../../assets/images/알림아이콘.png')}
-              style={styles.buttonIcon}
-              resizeMode="contain"
-            />
-            <View style={styles.badge} />
-          </TouchableOpacity>
-        </View>
+        {/* 알림 버튼 */}
+        <TouchableOpacity
+          style={styles.leftButton}
+          onPress={() => {
+            console.log('알림 버튼 클릭');
+            navigation.navigate('Notification');
+          }}
+        >
+          <Image
+            source={require('../../../assets/images/알림아이콘.png')}
+            style={styles.buttonIcon}
+            resizeMode="contain"
+          />
+          <View style={styles.badge} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
-

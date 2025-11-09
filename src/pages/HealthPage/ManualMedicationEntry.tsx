@@ -1,7 +1,7 @@
 // src/pages/HealthPage/ManualMedicationEntry.tsx
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, TextInput, Modal } from 'react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
 import { healthStyles } from '../../styles/Health';
@@ -150,8 +150,6 @@ export default function ManualMedicationEntry() {
       }
 
       await AsyncStorage.setItem(MEDICATION_STORAGE_KEY, JSON.stringify(existingData));
-
-      // 저장 후 이전 화면(MedicationSettings)으로 돌아가기
       navigation.goBack();
     } catch (error) {
       console.error('복약 데이터 저장 실패:', error);
@@ -245,119 +243,140 @@ export default function ManualMedicationEntry() {
         </View>
       </ScrollView>
 
-      <Modal visible={showFrequencyPicker} transparent animationType="fade">
-        <View style={healthStyles.modalOverlay}>
-          <View style={healthStyles.pickerModalContent}>
-            <ScaledText fontSize={24} style={healthStyles.modalTitle}>
-              투약 횟수 선택
-            </ScaledText>
-            <ScrollView style={healthStyles.pickerList}>
-              {frequencyOptions.map(freq => (
-                <TouchableOpacity
-                  key={freq}
-                  style={healthStyles.pickerItem}
-                  onPress={() => handleFrequencySelect(freq)}
-                >
-                  <ScaledText fontSize={20} style={healthStyles.pickerItemText}>
-                    {freq}회
-                  </ScaledText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={healthStyles.pickerCancelButton}
-              onPress={() => setShowFrequencyPicker(false)}
-            >
-              <ScaledText fontSize={18} style={healthStyles.pickerCancelText}>
-                취소
+      {/* 투약 횟수 선택 모달 - 수정됨 */}
+      <Modal visible={showFrequencyPicker} transparent animationType="fade" onRequestClose={() => setShowFrequencyPicker(false)}>
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFrequencyPicker(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={healthStyles.pickerModalContent}>
+              <ScaledText fontSize={24} style={healthStyles.modalTitle}>
+                투약 횟수 선택
               </ScaledText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={showDaysPicker} transparent animationType="fade">
-        <View style={healthStyles.modalOverlay}>
-          <View style={healthStyles.pickerModalContent}>
-            <ScaledText fontSize={24} style={healthStyles.modalTitle}>
-              투약 일수 선택
-            </ScaledText>
-            <ScrollView style={healthStyles.pickerList}>
-              {daysOptions.map(day => (
-                <TouchableOpacity
-                  key={day}
-                  style={healthStyles.pickerItem}
-                  onPress={() => handleDaysSelect(day)}
-                >
-                  <ScaledText fontSize={20} style={healthStyles.pickerItemText}>
-                    {day}일
-                  </ScaledText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={healthStyles.pickerCancelButton}
-              onPress={() => setShowDaysPicker(false)}
-            >
-              <ScaledText fontSize={18} style={healthStyles.pickerCancelText}>
-                취소
-              </ScaledText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={showDatePicker} transparent animationType="fade">
-        <View style={healthStyles.modalOverlay}>
-          <View style={healthStyles.datePickerModalContent}>
-            <ScaledText fontSize={24} style={healthStyles.modalTitle}>
-              투약 시작일 선택
-            </ScaledText>
-            <View style={healthStyles.datePickerContainer}>
+              <ScrollView style={healthStyles.pickerList}>
+                {frequencyOptions.map(freq => (
+                  <TouchableOpacity
+                    key={freq}
+                    style={healthStyles.pickerItem}
+                    onPress={() => handleFrequencySelect(freq)}
+                  >
+                    <ScaledText fontSize={20} style={healthStyles.pickerItemText}>
+                      {freq}회
+                    </ScaledText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               <TouchableOpacity
-                style={healthStyles.dateArrowButton}
-                onPress={() => handleDateChange('prev')}
+                style={healthStyles.pickerCancelButton}
+                onPress={() => setShowFrequencyPicker(false)}
               >
-                <Image
-                  source={require('../../../assets/images/왼쪽화살표꼬리X.png')}
-                  style={healthStyles.datePickerArrow}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <ScaledText fontSize={24} style={healthStyles.datePickerText}>
-                {startDate || formatDate(new Date())}
-              </ScaledText>
-              <TouchableOpacity
-                style={healthStyles.dateArrowButton}
-                onPress={() => handleDateChange('next')}
-              >
-                <Image
-                  source={require('../../../assets/images/오른쪽화살표꼬리X.png')}
-                  style={healthStyles.datePickerArrow}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={healthStyles.modalButtons}>
-              <TouchableOpacity
-                style={healthStyles.modalCancelButton}
-                onPress={() => setShowDatePicker(false)}
-              >
-                <ScaledText fontSize={18} style={healthStyles.modalCancelText}>
+                <ScaledText fontSize={18} style={healthStyles.pickerCancelText}>
                   취소
                 </ScaledText>
               </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* 투약 일수 선택 모달 - 수정됨 */}
+      <Modal visible={showDaysPicker} transparent animationType="fade" onRequestClose={() => setShowDaysPicker(false)}>
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDaysPicker(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={healthStyles.pickerModalContent}>
+              <ScaledText fontSize={24} style={healthStyles.modalTitle}>
+                투약 일수 선택
+              </ScaledText>
+              <ScrollView style={healthStyles.pickerList}>
+                {daysOptions.map(day => (
+                  <TouchableOpacity
+                    key={day}
+                    style={healthStyles.pickerItem}
+                    onPress={() => handleDaysSelect(day)}
+                  >
+                    <ScaledText fontSize={20} style={healthStyles.pickerItemText}>
+                      {day}일
+                    </ScaledText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               <TouchableOpacity
-                style={healthStyles.modalConfirmButton}
-                onPress={handleDateConfirm}
+                style={healthStyles.pickerCancelButton}
+                onPress={() => setShowDaysPicker(false)}
               >
-                <ScaledText fontSize={18} style={healthStyles.modalConfirmText}>
-                  확인
+                <ScaledText fontSize={18} style={healthStyles.pickerCancelText}>
+                  취소
                 </ScaledText>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* 날짜 선택 모달 - 수정됨 */}
+      <Modal visible={showDatePicker} transparent animationType="fade" onRequestClose={() => setShowDatePicker(false)}>
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDatePicker(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={healthStyles.datePickerModalContent}>
+              <ScaledText fontSize={24} style={healthStyles.modalTitle}>
+                투약 시작일 선택
+              </ScaledText>
+              <View style={healthStyles.datePickerContainer}>
+                <TouchableOpacity
+                  style={healthStyles.dateArrowButton}
+                  onPress={() => handleDateChange('prev')}
+                >
+                  <Image
+                    source={require('../../../assets/images/왼쪽화살표꼬리X.png')}
+                    style={healthStyles.datePickerArrow}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+                <ScaledText fontSize={24} style={healthStyles.datePickerText}>
+                  {startDate || formatDate(new Date())}
+                </ScaledText>
+                <TouchableOpacity
+                  style={healthStyles.dateArrowButton}
+                  onPress={() => handleDateChange('next')}
+                >
+                  <Image
+                    source={require('../../../assets/images/오른쪽화살표꼬리X.png')}
+                    style={healthStyles.datePickerArrow}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={healthStyles.modalButtons}>
+                <TouchableOpacity
+                  style={healthStyles.modalCancelButton}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <ScaledText fontSize={18} style={healthStyles.modalCancelText}>
+                    취소
+                  </ScaledText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={healthStyles.modalConfirmButton}
+                  onPress={handleDateConfirm}
+                >
+                  <ScaledText fontSize={18} style={healthStyles.modalConfirmText}>
+                    확인
+                  </ScaledText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );

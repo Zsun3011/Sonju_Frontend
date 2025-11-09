@@ -82,9 +82,6 @@ export default function MedicationSettings() {
     return isToday(date) ? '오늘' : formatDisplayDate(date);
   };
 
-  const canGoLeft = true;
-  const canGoRight = true;
-
   useFocusEffect(
     React.useCallback(() => {
       loadMedicationData();
@@ -118,19 +115,15 @@ export default function MedicationSettings() {
   const currentTimeSlots = getCurrentDayData();
 
   const handlePrevDay = () => {
-    if (canGoLeft) {
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() - 1);
-      setCurrentDate(newDate);
-    }
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setCurrentDate(newDate);
   };
 
   const handleNextDay = () => {
-    if (canGoRight) {
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() + 1);
-      setCurrentDate(newDate);
-    }
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setCurrentDate(newDate);
   };
 
   const toggleMedication = (slotIndex: number, medId: string) => {
@@ -173,6 +166,14 @@ export default function MedicationSettings() {
     setEditedFrequency(medication.frequency || '3');
     setEditedDays(medication.days || '7');
     setEditedStartDate(medication.startDate || formatDateForDisplay(currentDate));
+  };
+
+  const closeEditModal = () => {
+    setEditingMed(null);
+    setEditedName('');
+    setEditedFrequency('');
+    setEditedDays('');
+    setEditedStartDate('');
   };
 
   const getTimeSlots = (frequency: string): { time: string; label: string }[] => {
@@ -288,11 +289,7 @@ export default function MedicationSettings() {
 
       await AsyncStorage.setItem(MEDICATION_STORAGE_KEY, JSON.stringify(existingData));
       setMedicationData(existingData);
-      setEditingMed(null);
-      setEditedName('');
-      setEditedFrequency('');
-      setEditedDays('');
-      setEditedStartDate('');
+      closeEditModal();
     } catch (error) {
       console.error('복약 데이터 수정 실패:', error);
     }
@@ -349,7 +346,7 @@ export default function MedicationSettings() {
 
       await AsyncStorage.setItem(MEDICATION_STORAGE_KEY, JSON.stringify(existingData));
       setMedicationData(existingData);
-      setEditingMed(null);
+      closeEditModal();
     } catch (error) {
       console.error('복약 데이터 삭제 실패:', error);
     }
@@ -375,28 +372,10 @@ export default function MedicationSettings() {
     setEditedStartDate(formatDateForDisplay(currentDate));
   };
 
-  const handleAddButtonPress = () => {
-    setShowAddMenu(!showAddMenu);
-  };
-
-  const handleManualEntry = () => {
-    setShowAddMenu(false);
-    navigation.navigate('ManualMedicationEntry');
-  };
-
-  const handlePrescriptionOCR = () => {
-    setShowAddMenu(false);
-    navigation.navigate('PrescriptionOCR');
-  };
-
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
-
   return (
     <View style={healthStyles.container}>
       <View style={healthStyles.header}>
-        <TouchableOpacity style={healthStyles.backButton} onPress={handleBackPress}>
+        <TouchableOpacity style={healthStyles.backButton} onPress={() => navigation.goBack()}>
           <Image source={require('../../../assets/images/왼쪽화살표.png')} style={healthStyles.backIcon} resizeMode="contain" />
         </TouchableOpacity>
         <ScaledText fontSize={24} style={healthStyles.headerTitle}>복약 알림 설정</ScaledText>
@@ -444,39 +423,54 @@ export default function MedicationSettings() {
         </View>
       </ScrollView>
 
-      <Modal visible={editingMed !== null} transparent={true} animationType="fade" onRequestClose={() => setEditingMed(null)}>
-        <TouchableOpacity style={healthStyles.modalOverlay} activeOpacity={1} onPress={() => setEditingMed(null)}>
+      {/* 약 수정 모달 - 수정됨 */}
+      <Modal
+        visible={editingMed !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeEditModal}
+      >
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeEditModal}
+        >
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             <View style={healthStyles.editMedicationModal}>
               <ScaledText fontSize={24} style={healthStyles.modalTitle}>약 정보 수정</ScaledText>
+
               <View style={healthStyles.editModalField}>
                 <ScaledText fontSize={20} style={healthStyles.editModalLabel}>약 이름</ScaledText>
                 <TextInput style={healthStyles.editModalInput} value={editedName} onChangeText={setEditedName} placeholder="약 이름" placeholderTextColor="#999" />
               </View>
+
               <TouchableOpacity style={healthStyles.editModalField} onPress={() => setShowFrequencyPicker(true)}>
                 <ScaledText fontSize={20} style={healthStyles.editModalLabel}>투약 횟수 (1일)</ScaledText>
                 <View style={healthStyles.editModalInput}>
                   <ScaledText fontSize={18} style={healthStyles.inputText}>{editedFrequency}회</ScaledText>
                 </View>
               </TouchableOpacity>
+
               <TouchableOpacity style={healthStyles.editModalField} onPress={() => setShowDaysPicker(true)}>
                 <ScaledText fontSize={20} style={healthStyles.editModalLabel}>투약 일수</ScaledText>
                 <View style={healthStyles.editModalInput}>
                   <ScaledText fontSize={18} style={healthStyles.inputText}>{editedDays}일</ScaledText>
                 </View>
               </TouchableOpacity>
+
               <TouchableOpacity style={healthStyles.editModalField} onPress={() => setShowDatePicker(true)}>
                 <ScaledText fontSize={20} style={healthStyles.editModalLabel}>투약 시작일</ScaledText>
                 <View style={healthStyles.editModalInput}>
                   <ScaledText fontSize={18} style={healthStyles.inputText}>{editedStartDate}</ScaledText>
                 </View>
               </TouchableOpacity>
+
               <View style={healthStyles.editModalButtons}>
                 <TouchableOpacity style={healthStyles.deleteButton} onPress={handleDeleteMedication}>
                   <ScaledText fontSize={20} style={healthStyles.deleteButtonText}>삭제</ScaledText>
                 </TouchableOpacity>
                 <View style={healthStyles.editModalRightButtons}>
-                  <TouchableOpacity style={healthStyles.editModalCancelButton} onPress={() => { setEditingMed(null); setEditedName(''); setEditedFrequency(''); setEditedDays(''); setEditedStartDate(''); }}>
+                  <TouchableOpacity style={healthStyles.editModalCancelButton} onPress={closeEditModal}>
                     <ScaledText fontSize={20} style={healthStyles.editModalCancelText}>취소</ScaledText>
                   </TouchableOpacity>
                   <TouchableOpacity style={healthStyles.editModalSaveButton} onPress={handleSaveEdit}>
@@ -489,8 +483,13 @@ export default function MedicationSettings() {
         </TouchableOpacity>
       </Modal>
 
+      {/* 투약 횟수 선택 모달 - 수정됨 */}
       <Modal visible={showFrequencyPicker} transparent={true} animationType="fade" onRequestClose={() => setShowFrequencyPicker(false)}>
-        <TouchableOpacity style={healthStyles.modalOverlay} activeOpacity={1} onPress={() => setShowFrequencyPicker(false)}>
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFrequencyPicker(false)}
+        >
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             <View style={healthStyles.pickerModalContent}>
               <ScaledText fontSize={20} style={healthStyles.modalTitle}>투약 횟수 선택</ScaledText>
@@ -509,8 +508,13 @@ export default function MedicationSettings() {
         </TouchableOpacity>
       </Modal>
 
+      {/* 투약 일수 선택 모달 - 수정됨 */}
       <Modal visible={showDaysPicker} transparent={true} animationType="fade" onRequestClose={() => setShowDaysPicker(false)}>
-        <TouchableOpacity style={healthStyles.modalOverlay} activeOpacity={1} onPress={() => setShowDaysPicker(false)}>
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDaysPicker(false)}
+        >
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             <View style={healthStyles.pickerModalContent}>
               <ScaledText fontSize={20} style={healthStyles.modalTitle}>투약 일수 선택</ScaledText>
@@ -529,8 +533,13 @@ export default function MedicationSettings() {
         </TouchableOpacity>
       </Modal>
 
+      {/* 날짜 선택 모달 - 수정됨 */}
       <Modal visible={showDatePicker} transparent={true} animationType="fade" onRequestClose={() => setShowDatePicker(false)}>
-        <TouchableOpacity style={healthStyles.modalOverlay} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
+        <TouchableOpacity
+          style={healthStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDatePicker(false)}
+        >
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             <View style={healthStyles.datePickerModalContent}>
               <ScaledText fontSize={20} style={healthStyles.modalTitle}>투약 시작일 선택</ScaledText>
@@ -560,17 +569,17 @@ export default function MedicationSettings() {
         <>
           <TouchableOpacity style={healthStyles.menuOverlay} activeOpacity={1} onPress={() => setShowAddMenu(false)} />
           <View style={healthStyles.floatingMenu}>
-            <TouchableOpacity style={healthStyles.menuButton} onPress={handlePrescriptionOCR}>
+            <TouchableOpacity style={healthStyles.menuButton} onPress={() => { setShowAddMenu(false); navigation.navigate('PrescriptionOCR'); }}>
               <ScaledText fontSize={24} style={healthStyles.menuButtonText}>처방전 {'\n'} 이미지 인식</ScaledText>
             </TouchableOpacity>
-            <TouchableOpacity style={healthStyles.menuButton} onPress={handleManualEntry}>
+            <TouchableOpacity style={healthStyles.menuButton} onPress={() => { setShowAddMenu(false); navigation.navigate('ManualMedicationEntry'); }}>
               <ScaledText fontSize={24} style={healthStyles.menuButtonText}>직접 입력</ScaledText>
             </TouchableOpacity>
           </View>
         </>
       )}
 
-      <TouchableOpacity style={healthStyles.addButton} onPress={handleAddButtonPress}>
+      <TouchableOpacity style={healthStyles.addButton} onPress={() => setShowAddMenu(!showAddMenu)}>
         <Image source={require('../../../assets/images/플러스아이콘.png')} style={healthStyles.addIcon} resizeMode="contain" />
       </TouchableOpacity>
     </View>

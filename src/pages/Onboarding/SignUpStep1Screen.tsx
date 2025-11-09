@@ -1,164 +1,151 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { onboardingStyles as s } from '../../styles/Template';
-import { CognitoUserPool } from 'amazon-cognito-identity-js';
+import { ICognitoUserPoolData } from 'amazon-cognito-identity-js';
 
-const poolData = {
+const poolData: ICognitoUserPoolData = {
     UserPoolId: 'ap-northeast-1_Frx61b697',
     ClientId: '4mse47h6vme901667vuqb185vo',
 };
 
-function userPoolSignUp(name, phone, password, pool) {
-    return new Promise((resolve, reject) => {
-        const userPool = new CognitoUserPool(pool);
-        userPool.signUp(
-            phone, // username
-            password, // password, 임시값이라 지정 필요
-            [
-                // attributes
-                {Name: 'phone_number', Value: phone},
-                {Name: 'name', Value: name},
-                {Name: 'gender', Value: 'male'}, // 임시값이라 지정 필요
-                {Name: 'birthdate', Value: '1970-01-01'}], //임시값이라 지정 필요
-            null, // validationData
-            (err, result) => { // callback
-
-
-                if (err) {
-                    console.log(err);
-                    return reject(false);
-                }
-                else {
-                    resolve(true);
-                }
-                /*
-                if (err) {
-                    //console.error(err);
-                    return reject(err);
-                }
-                else {
-                    const cognito_id = result.userSub;
-
-
-                    result.user.getUserAttributes((attrErr, attributes) => {
-                        if (attrErr) return reject(attrErr);
-
-                        const attrMap = {};
-                        attributes.forEach(a => { attrMap[a.getName()] = a.getValue(); });
-                        console.log("회원가입 성공: 정보", result);
-
-                        return resolve({
-                            cognito_id: cognito_id,
-                            name: attrMap.name,
-                            gender:attrMap.gender,
-                            birthdate: attrMap.birthdate,
-                            phone_number: attrMap.phone_number
-                        });
-
-                    });
-
-                }
-            */
-            });
-    });
-}
-
 export default function SignUpStep1Screen({ navigation }: any) {
-    const [phone, setPhone] = useState('');
-    const [name, setName] = useState('');
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [birthDate, setBirthDate] = useState('');
+  const [phone, setPhone] = useState('');
 
-    const tempPassword = '1234abcdABCD@#'; // 비밀번호는 대소문자와 특수기호를 포함해야 함.
-    // 전화번호 포맷팅 함수 (숫자만 추출)
-    const formatPhone = (text: string) => {
-        // 숫자만 남기기
-        const numbers = text.replace(/[^0-9]/g, '');
-        // 11자리 제한
-        return numbers.slice(0,11);
-    };
+  // 전화번호 포맷팅
+  const formatPhone = (text: string) => {
+    const numbers = text.replace(/[^0-9]/g, '');
+    return numbers.slice(0, 11);
+  };
 
-    const handlePhoneChange = (text: string) => {
-        const formatted = formatPhone(text);
-        setPhone(formatted);
-    };
+  const handlePhoneChange = (text: string) => {
+    const formatted = formatPhone(text);
+    setPhone(formatted);
+  };
 
-    const handleNext = async () => {
-        // 유효성 검사
-        if (!name.trim()) {
-            Alert.alert('오류', '이름을 입력해주세요');
-            return;
-        }
-    
-        if (phone.length !== 11 || !phone.startsWith('010')) {
-            Alert.alert('오류', '올바른 전화번호를 입력해주세요\n(010으로 시작하는 11자리)');
-            return;
-        }
+  // 생년월일 포맷팅 (YYYYMMDD)
+  const formatBirthDate = (text: string) => {
+    const numbers = text.replace(/[^0-9]/g, '');
+    return numbers.slice(0, 8);
+  };
 
-        try {
-            const signed = await userPoolSignUp(name, '+82' + phone.substring(1), tempPassword, poolData); // E.164 포맷으로 변경 ex. +821012345678
+  const handleBirthDateChange = (text: string) => {
+    const formatted = formatBirthDate(text);
+    setBirthDate(formatted);
+  };
 
+  const handleNext = async () => {
+    // 유효성 검사
+    if (!name.trim()) {
+      Alert.alert('오류', '이름을 입력해주세요');
+      return;
+    }
 
-            if (!signed) {
-                Alert.alert('오류', '이미 등록된 전화번호입니다');
-                return;
-            }
+    if (!gender) {
+      Alert.alert('오류', '성별을 선택해주세요');
+      return;
+    }
 
+    if (birthDate.length !== 8) {
+      Alert.alert('오류', '생년월일을 8자리로 입력해주세요\n예: 19900101');
+      return;
+    }
 
-            /*
-            console.log("response 정보:", signed);
-            const response = await fetch("http://ec2-13-125-2-245.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(signed)
-            });
-            if (!response.ok) {
-                const error = await response.json();
-                Alert.alert('회원가입 실패', error.details);
-                return;
-            }
-            */
-        } catch (err) {
-            console.error("에러가 발생했습니다.",err);
-            Alert.alert('오류', '오류가 발생했습니다');
-            return;
-        }
+    // 생년월일 유효성 검사
+    const year = parseInt(birthDate.slice(0, 4));
+    const month = parseInt(birthDate.slice(4, 6));
+    const day = parseInt(birthDate.slice(6, 8));
 
+    if (year < 1900 || year > new Date().getFullYear()) {
+      Alert.alert('오류', '올바른 연도를 입력해주세요');
+      return;
+    }
 
+    if (month < 1 || month > 12) {
+      Alert.alert('오류', '올바른 월을 입력해주세요');
+      return;
+    }
 
-        // 다음 화면으로 데이터 전달 (중요!)
-        navigation.navigate('SignUpStep2', {
-            phone: phone,
-            name: name.trim(),
-            poolData: poolData,
-            tempPassword: tempPassword
-        });
-    };
+    if (day < 1 || day > 31) {
+      Alert.alert('오류', '올바른 일을 입력해주세요');
+      return;
+    }
 
-    return (
-        <View style={s.container1}>
-            <Text style={s.title}>이름과 전화번호를 {'\n'} 입력해주세요</Text>
-      
-            <TextInput
-                style={s.input}
-                placeholder="이름을 입력하세요"
-                value={name}
-                onChangeText={setName}
-                maxLength={20}  // 이름 최대 길이 제한
-            />
-      
-            <TextInput
-                style={s.input}
-                keyboardType="number-pad"  // phone-pad → number-pad (숫자만)
-                placeholder="01012345678"
-                value={phone}
-                onChangeText={handlePhoneChange}
-                maxLength={11}  // 11자리 제한
-            />
-      
-            <TouchableOpacity style={s.smallButton} onPress={handleNext}>
-                <Text style={s.buttonText}>인증번호 받기</Text>
-            </TouchableOpacity>
+    if (phone.length !== 11 || !phone.startsWith('010')) {
+      Alert.alert('오류', '올바른 전화번호를 입력해주세요\n(010으로 시작하는 11자리)');
+      return;
+    }
+
+    // 다음 단계(비밀번호 입력)로 데이터 전달
+    navigation.navigate('SignUpStep2', {
+      name: name.trim(),
+      gender,
+      birthDate,
+      phone,
+      poolData: poolData
+    });
+  };
+
+  return (
+    <ScrollView contentContainerStyle={s.scrollContainer}>
+      <View style={s.container1}>
+        <Text style={s.title}>회원 정보를{'\n'}입력해주세요</Text>
+
+        {/* 이름 */}
+        <TextInput
+          style={s.input}
+          placeholder="이름을 입력하세요"
+          value={name}
+          onChangeText={setName}
+          maxLength={20}
+        />
+
+        {/* 성별 선택 */}
+        <View style={s.genderContainer}>
+          <TouchableOpacity
+            style={[s.genderButton, gender === 'male' && s.genderButtonActive]}
+            onPress={() => setGender('male')}
+          >
+            <Text style={[s.genderText, gender === 'male' && s.genderTextActive]}>
+              남성
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.genderButton, gender === 'female' && s.genderButtonActive]}
+            onPress={() => setGender('female')}
+          >
+            <Text style={[s.genderText, gender === 'female' && s.genderTextActive]}>
+              여성
+            </Text>
+          </TouchableOpacity>
         </View>
-    );
+
+        {/* 생년월일 */}
+        <TextInput
+          style={s.input}
+          keyboardType="number-pad"
+          placeholder="생년월일 (예: 19900101)"
+          value={birthDate}
+          onChangeText={handleBirthDateChange}
+          maxLength={8}
+        />
+
+        {/* 전화번호 */}
+        <TextInput
+          style={s.input}
+          keyboardType="number-pad"
+          placeholder="전화번호 (예: 01012345678)"
+          value={phone}
+          onChangeText={handlePhoneChange}
+          maxLength={11}
+        />
+
+        <TouchableOpacity style={s.button} onPress={handleNext}>
+          <Text style={s.buttonText}>다음으로</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
 }

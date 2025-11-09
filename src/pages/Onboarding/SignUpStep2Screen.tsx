@@ -1,138 +1,158 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, LogBox } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { onboardingStyles as s } from '../../styles/Template';
-import { CognitoUser, CognitoUserPool, AuthenticationDetails, } from 'amazon-cognito-identity-js';
+import { CognitoUserPool, CognitoUserAttribute } from 'amazon-cognito-identity-js';
 
+function userPoolSignUp(
+  name: string,
+  phone: string,
+  gender: string,
+  birthDate: string,
+  password: string,
+  poolData: { UserPoolId: string; ClientId: string }
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const userPool = new CognitoUserPool(poolData);
 
-function verify(name, poolData, code) {
-    return new Promise((resolve, reject) => {
-        const userPool = new CognitoUserPool(poolData);
+    // 생년월일을 YYYY-MM-DD 형식으로 변환
+    const formattedBirthDate = `${birthDate.slice(0, 4)}-${birthDate.slice(4, 6)}-${birthDate.slice(6, 8)}`;
 
-        const cognitoUser = new CognitoUser({
-          Username: name,
-          Pool: userPool,
-        });
+    const attributeList = [
+      new CognitoUserAttribute({ Name: 'phone_number', Value: phone }),
+      new CognitoUserAttribute({ Name: 'name', Value: name }),
+      new CognitoUserAttribute({ Name: 'gender', Value: gender }),
+      new CognitoUserAttribute({ Name: 'birthdate', Value: formattedBirthDate }),
+    ];
 
-        cognitoUser.confirmRegistration(code, true, (err, result) => {
-
-            if (err) {
-                console.error("에러", JSON.stringify(err, null, 2));
-                return reject(false);
-            }
-            resolve(true);
-
-        });
-    });
-}
-
-function getUserInfo(name, password, poolData) {
-    return new Promise((resolve, reject) => {
-        const userPool = new CognitoUserPool(poolData);
-
-        const cognitoUser = new CognitoUser({
-            Username: name,
-            Pool: userPool,
-        });
-
-        const authDetails = new AuthenticationDetails({
-            Username: name,
-            Password: password,
-        });
-
-        cognitoUser.authenticateUser(authDetails, {
-            onSuccess: (result) => {
-                cognitoUser.getUserAttributes((attrErr, attributes) => {
-                    if (attrErr) {
-                        console.error(attrErr);
-                        return reject(attrErr);
-                    }
-                    const attrMap: any = {};
-                    attributes.forEach(a => { attrMap[a.getName()] = a.getValue(); });
-
-                    return resolve({
-                        cognito_id: attrMap.sub,
-                        name: attrMap.name,
-                        gender:attrMap.gender,
-                        birthdate: attrMap.birthdate,
-                        phone_number: attrMap.phone_number
-                    });
-                });
-            },
-            onFailure: (err) => reject(err)
-        });
-    });
+    userPool.signUp(
+      phone, // username
+      password, // password
+      attributeList, // attributes
+      [], // validationData
+      (err, result) => {
+        if (err) {
+          console.log('Cognito SignUp Error:', err);
+          return reject(err);
+        } else {
+          console.log('Cognito SignUp Success:', result);
+          resolve(true);
+        }
+      }
+    );
+  });
 }
 
 export default function SignUpStep2Screen({ route, navigation }: any) {
-    // Step1에서 전달받은 데이터
-    const { phone, name, poolData, tempPassword } = route.params || {};
-    const [code, setCode] = useState('');
+  const { name, gender, birthDate, phone, poolData } = route.params || {};
 
-    const handleNext = async () => {
-        // 유효성 검사
-        if (!code || code.length !== 6) {
-            Alert.alert('오류', '인증번호 6자리를 입력해주세요');
-            return;
-        }
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
 
-        // TODO: 여기서 백엔드에 인증번호 검증 API 호출
-        try {
-            const state = await verify('+82' + phone.substring(1), poolData, code);
-            if (!state) {
-                Alert.alert('오류', '전화번호 인증에 실패했습니다');
-                return;
-            }
-            const userInfo = await getUserInfo('+82' + phone.substring(1), tempPassword, poolData);
-            console.log(userInfo);
-            const response = await fetch("http://ec2-13-125-2-245.ap-northeast-2.compute.amazonaws.com:8000/auth/signup", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(userInfo)
-            });
-            console.log(response);
-            if (!response.ok) {
-                const error = await response.json();
-                console.error(error.detail);
-                Alert.alert('회원가입 실패');
-                return;
-            }
-        } catch (err) {
-            console.error(err);
-            Alert.alert('오류', '에러가 발생했습니다');
-            return;
-        }
-        // 다음 화면으로 데이터 전달
-        navigation.navigate(
-            'AddChildInfo',
-            {
-                phone: phone,
-                name: name,
-                verificationCode: code,
-                poolData: poolData,
-                tempPassword: tempPassword
-            }
-        );
-    };
+  const handleNext = async () => {
+    // 비밀번호 유효성 검사
+    if (!password || !passwordConfirm) {
+      Alert.alert('오류', '비밀번호를 입력해주세요');
+      return;
+    }
 
-        return (
-            <View style={s.container1}>
-                <Text style={s.title}>인증번호를 입력해주세요</Text>
-                {phone && (
-                    <Text style={s.maintext}>{phone}로 전송된 인증번호</Text>
-                )}
-                <TextInput
-                    style={s.input}
-                    keyboardType="number-pad"
-                    placeholder="123456"
-                    value={code}
-                    onChangeText={(text) => setCode(text.slice(0, 6))}  // 6자리 제한
-                    maxLength={6}
-                />
-                <TouchableOpacity style={s.smallButton} onPress={handleNext}>
-                    <Text style={s.buttonText}>다음으로</Text>
-                </TouchableOpacity>
-            </View>
-        );
+    if (password.length < 8) {
+      Alert.alert('오류', '비밀번호는 최소 8자리 이상이어야 합니다');
+      return;
+    }
+
+    // 비밀번호 강도 검사 (Cognito 요구사항)
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      Alert.alert(
+        '오류',
+        '비밀번호는 대문자, 소문자, 숫자, 특수문자(!@#$%^&*)를 모두 포함해야 합니다'
+      );
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      Alert.alert('오류', '비밀번호가 일치하지 않습니다');
+      return;
+    }
+
+    // Cognito 회원가입 요청 및 인증번호 발송
+    setLoading(true);
+    try {
+      await userPoolSignUp(name, '+82' + phone.substring(1), gender, birthDate, password, poolData);
+
+      Alert.alert('성공', '인증번호가 전송되었습니다.\n전화번호를 확인해주세요.', [
+        {
+          text: '확인',
+          onPress: () =>
+            navigation.navigate('SignUpStep3', {
+              name,
+              gender,
+              birthDate,
+              phone,
+              password,
+              poolData,
+            }),
+        },
+      ]);
+    } catch (error: any) {
+      console.error('회원가입 에러:', error);
+
+      // Cognito 에러 메시지 처리
+      if (error.code === 'UsernameExistsException') {
+        Alert.alert('오류', '이미 등록된 전화번호입니다');
+      } else if (error.code === 'InvalidParameterException') {
+        Alert.alert('오류', '입력 정보를 확인해주세요');
+      } else if (error.code === 'InvalidPasswordException') {
+        Alert.alert('오류', '비밀번호 형식이 올바르지 않습니다');
+      } else {
+        Alert.alert('오류', error.message || '회원가입 요청에 실패했습니다');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={s.container1}>
+      <Text style={s.title}>비밀번호를{'\n'}설정해주세요</Text>
+
+      <Text style={s.passwordGuide}>
+        • 8자리 이상{'\n'}
+        • 대문자, 소문자, 숫자, 특수문자 포함
+      </Text>
+
+      <TextInput
+        style={s.input}
+        placeholder="비밀번호를 입력하세요"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        autoCapitalize="none"
+        editable={!loading}
+      />
+
+      <TextInput
+        style={s.input}
+        placeholder="비밀번호를 다시 입력하세요"
+        value={passwordConfirm}
+        onChangeText={setPasswordConfirm}
+        secureTextEntry
+        autoCapitalize="none"
+        editable={!loading}
+      />
+
+      <TouchableOpacity style={s.button} onPress={handleNext} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={s.buttonText}>인증번호 받기</Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
 }

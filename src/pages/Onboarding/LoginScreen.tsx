@@ -9,36 +9,39 @@ const myPoolData = {
     ClientId: '4mse47h6vme901667vuqb185vo',
 };
 
-function logIn(name, password, poolData) {
-    return new Promise((resolve, reject) => {
-        const userPool = new CognitoUserPool(poolData);
+function logIn(
+  name: string,
+  password: string,
+  poolData: { UserPoolId: string; ClientId: string }
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const userPool = new CognitoUserPool(poolData);
 
-        const authDetails = new AuthenticationDetails({
-            Username: name,
-            Password: password,
-        });
-
-        const cognitoUser = new CognitoUser({
-            Username: name,
-            Pool: userPool,
-        });
-
-        cognitoUser.authenticateUser(authDetails, {
-            onSuccess: (result) => {
-                // 작업 필요
-                console.log(result);
-                return resolve(true);
-            },
-            onFailure: (err) => {
-                console.error(err);
-                return reject(false);
-            },
-            newPasswordRequired: () => {
-                console.error("newPasswordRequired");
-                return reject(false);
-            },
-        });
+    const authDetails = new AuthenticationDetails({
+      Username: name,
+      Password: password,
     });
+
+    const cognitoUser = new CognitoUser({
+      Username: name,
+      Pool: userPool,
+    });
+
+    cognitoUser.authenticateUser(authDetails, {
+      onSuccess: (result) => {
+        console.log('Cognito 로그인 성공:', result);
+        resolve(true);
+      },
+      onFailure: (err) => {
+        console.error('Cognito 로그인 실패:', err);
+        reject(new Error(err.message || '로그인 실패'));
+      },
+      newPasswordRequired: () => {
+        console.error('새 비밀번호가 필요합니다');
+        reject(new Error('새 비밀번호 설정이 필요합니다'));
+      },
+    });
+  });
 }
 
 
@@ -82,24 +85,52 @@ export default function LoginScreen({ navigation }: any) {
     // 로그인 처리
     setLoading(true);
     try {
-      // TODO: 백엔드 API 호출
-      const signed  = await logIn('+82' + phone.substring(1), password, myPoolData);
-      if (!signed) {
-        Alert.alert('에러', '로그인에 실패했습니다');
-        console.err("에러");
-        return;
+      // 1. Cognito 로그인
+      await logIn('+82' + phone.substring(1), password, myPoolData);
+      console.log('Cognito 로그인 성공:', { phone });
+
+      // 2. 백엔드에서 사용자 프로필 확인 (손주 정보 설정 여부 확인)
+      const profileResponse = await fetch(`http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/user/profile?phone=${encodeURIComponent('+82' + phone.substring(1))}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!profileResponse.ok) {
+        throw new Error('프로필 조회 실패');
       }
-      // 임시: 로그인 성공 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
-      
-      console.log('로그인 성공:', { phone });
-      
-      // SignUpSuccess 화면으로 이동
-      navigation.navigate('SignUpSuccess');
-      
+
+      const userProfile = await profileResponse.json();
+      console.log('사용자 프로필:', userProfile);
+
+      // 3. 손주 정보 설정 여부에 따라 분기
+      if (userProfile.hasSonjuInfo || userProfile.has_sonju_info) {
+        // 손주 정보가 이미 설정된 경우 - 메인 화면으로
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
+      } else {
+        // 손주 정보가 없는 경우 - 설정 단계로
+        navigation.navigate('SignUpSuccess');
+      }
+
     } catch (error: any) {
       console.error('로그인 실패:', error);
-      Alert.alert('로그인 실패', '전화번호 또는 비밀번호가 일치하지 않습니다');
+
+      // 에러 메시지 분기 처리
+      if (error.message === '프로필 조회 실패') {
+        // 프로필 조회 실패 시에도 일단 손주 정보 설정 단계로
+        Alert.alert('알림', '처음 로그인하시는군요! 손주 정보를 설정해주세요.', [
+          {
+            text: '확인',
+            onPress: () => navigation.navigate('SignUpSuccess')
+          }
+        ]);
+      } else {
+        Alert.alert('로그인 실패', '전화번호 또는 비밀번호가 일치하지 않습니다');
+      }
     } finally {
       setLoading(false);
     }

@@ -20,7 +20,7 @@ function verify(
         const msg = err.message || '';
         console.error('인증번호 확인 실패:', msg);
 
-        // 이미 인증된 계정이면 성공으로 간주
+        // ✅ 이미 인증된 계정이면 성공으로 간주
         if (msg.includes('Current status is CONFIRMED') || msg.includes('cannot be confirmed')) {
           console.log('이미 인증된 사용자 → 정상 처리로 간주');
           resolve(true);
@@ -36,6 +36,7 @@ function verify(
     });
   });
 }
+
 
 function resendVerificationCode(
   name: string,
@@ -118,9 +119,9 @@ function getUserInfo(
     });
 }
 
-export default function SignUpStep3Screen({ route, navigation }: any) {
-    // Step2에서 전달받은 데이터
-    const { phone, poolData, password } = route.params || {};
+export default function SignUpStep2Screen({ route, navigation }: any) {
+    // Step1에서 전달받은 데이터
+    const { phone, poolData, tempPassword } = route.params || {};
     const [code, setCode] = useState('');
     const [isResending, setIsResending] = useState(false);
 
@@ -154,7 +155,7 @@ export default function SignUpStep3Screen({ route, navigation }: any) {
             }
 
             // 2. Cognito에서 사용자 정보 가져오기
-            const userInfo = await getUserInfo('+82' + phone.substring(1), password, poolData);
+            const userInfo = await getUserInfo('+82' + phone.substring(1), tempPassword, poolData);
             console.log('Cognito 사용자 정보:', userInfo);
 
             // 3. 백엔드 서버에 회원가입 요청
@@ -223,7 +224,7 @@ export default function SignUpStep3Screen({ route, navigation }: any) {
                 console.log('이미 인증된 사용자일 가능성 - 로그인 시도');
                 try {
                     // 이미 인증된 경우 로그인으로 사용자 정보 가져오기
-                    const userInfo = await getUserInfo('+82' + phone.substring(1), password, poolData);
+                    const userInfo = await getUserInfo('+82' + phone.substring(1), tempPassword, poolData);
                     console.log('Cognito 사용자 정보:', userInfo);
 
                     // 백엔드 서버에 회원가입 요청

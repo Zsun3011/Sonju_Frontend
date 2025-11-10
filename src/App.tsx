@@ -5,6 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './navigation/RootNavigator';
 import { FontSizeProvider } from './contexts/FontSizeContext';
+import { ChatProvider } from './contexts/ChatContext';
+import { MissionProvider } from './contexts/MissionContext';
 
 export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -12,10 +14,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <FontSizeProvider>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
+        <ChatProvider>
+          <MissionProvider>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </MissionProvider>
+        </ChatProvider>
       </FontSizeProvider>
     </SafeAreaProvider>
   );

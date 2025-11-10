@@ -70,7 +70,7 @@ export default function MainTabNavigator() {
 
       <Tab.Screen
         name="Calendar"
-        component={DailyQuestPage}
+        component={TodoPage}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon
@@ -94,11 +94,17 @@ export default function MainTabNavigator() {
             />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('ChatMain' as never);
+          },
+        })}
       />
 
       <Tab.Screen
         name="Mission"
-        component={TodoPage}
+        component={DailyQuestPage}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon

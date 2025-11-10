@@ -3,8 +3,10 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import ScaledText from '../../components/ScaledText';
 import { styles } from '../../styles/Home';
+import { useMission } from '../../contexts/MissionContext';
 
 export default function HomePage({ navigation }: any) {
+  const { totalPoints } = useMission();
   const quickMenus = [
     {
       id: 1,
@@ -71,7 +73,7 @@ export default function HomePage({ navigation }: any) {
           />
 
           {/* 메시지 아이콘 */}
-          <TouchableOpacity style={styles.messageButton} onPress={() => navigation.navigate('Chat')}>
+          <TouchableOpacity style={styles.messageButton} onPress={() => navigation.navigate('ChatMain')}>
             <Image
               source={require('../../../assets/images/말풍선아이콘.png')}
               style={styles.messageIcon}
@@ -85,7 +87,7 @@ export default function HomePage({ navigation }: any) {
           <View style={styles.pointContainer}>
             <View style={styles.pointSection}>
                 <ScaledText fontSize={24} style={styles.pointText}>
-                  18 포인트
+                  {totalPoints} 포인트
                 </ScaledText>
                 <Image
                   source={require('../../../assets/images/코인.png')}
@@ -131,4 +133,3 @@ export default function HomePage({ navigation }: any) {
     </View>
   );
 }
-

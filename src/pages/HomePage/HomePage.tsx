@@ -6,14 +6,8 @@ import ScaledText from '../../components/ScaledText';
 import { styles } from '../../styles/Home';
 import { useMission } from '../../contexts/MissionContext';
 
-<<<<<<< HEAD
-export default function HomePage() {
-  const navigation = useNavigation<any>();
-
-=======
 export default function HomePage({ navigation }: any) {
   const { totalPoints } = useMission();
->>>>>>> db993bc2795fa5f827ec51b3eeeac9df5cd3aff3
   const quickMenus = [
     {
       id: 1,
@@ -75,17 +69,6 @@ export default function HomePage({ navigation }: any) {
 
           {/* 캐릭터 이미지 */}
           <View style={styles.characterContainer}>
-<<<<<<< HEAD
-=======
-          <Image
-            source={require('../../../assets/images/sonjusmile.png')}
-            style={styles.characterImage}
-            resizeMode="contain"
-          />
-
-          {/* 메시지 아이콘 */}
-          <TouchableOpacity style={styles.messageButton} onPress={() => navigation.navigate('ChatMain')}>
->>>>>>> db993bc2795fa5f827ec51b3eeeac9df5cd3aff3
             <Image
               source={require('../../../assets/images/sonjusmile.png')}
               style={styles.characterImage}
@@ -109,15 +92,6 @@ export default function HomePage({ navigation }: any) {
           {/* 포인트 영역 */}
           <View style={styles.pointContainer}>
             <View style={styles.pointSection}>
-<<<<<<< HEAD
-              <ScaledText fontSize={24} style={styles.pointText}>
-                18 포인트
-              </ScaledText>
-              <Image
-                source={require('../../../assets/images/코인.png')}
-                style={styles.Icons}
-              />
-=======
                 <ScaledText fontSize={24} style={styles.pointText}>
                   {totalPoints} 포인트
                 </ScaledText>
@@ -125,7 +99,6 @@ export default function HomePage({ navigation }: any) {
                   source={require('../../../assets/images/코인.png')}
                   style={styles.Icons}
                 />
->>>>>>> db993bc2795fa5f827ec51b3eeeac9df5cd3aff3
             </View>
             <TouchableOpacity style={styles.pointSection}>
               <ScaledText fontSize={18} style={styles.pointButton}>

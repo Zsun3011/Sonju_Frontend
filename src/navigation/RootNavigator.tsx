@@ -1,11 +1,10 @@
-// src/navigation/RootNavigator.tsx
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
 import OnboardingNavigator from './OnboardingNavigator';
-import MainTabNavigator from '../navigation/MainTabNavigator';
+import MainTabNavigator from './MainTabNavigator';
 
 // Chat Pages
 import ChatMainPage from '../pages/AiChatPage/ChatMain';
@@ -18,9 +17,19 @@ import ChatListPage from '../pages/AiChatPage/ChatList';
 import DailyQuestPage from '../pages/DailyQuestPage/DailyQuestPage';
 import MissionChatPage from '../pages/DailyQuestPage/MissionChatPage';
 
+// Home Pages (추가)
+import SettingsPage from '../pages/HomePage/SettingsPage';
+import NotificationPage from '../pages/HomePage/NotificationPage';
+import HealthPage from '../pages/HealthPage/HealthPage';
+import MedicationSettings from '../pages/HealthPage/MedicationSettings';
+import HealthDiaryEntry from '../pages/HealthPage/HealthDiaryEntry';
+import HealthDiaryList from '../pages/HealthPage/HealthDiaryList';
+import ManualMedicationEntry from '../pages/HealthPage/ManualMedicationEntry';
+import PrescriptionOCR from '../pages/HealthPage/PrescriptionOCR';
+import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm';
+
 const Stack = createNativeStackNavigator();
 
-// 🔧 디버깅 모드: true로 설정하면 온보딩 건너뛰고 바로 메인으로 이동
 const DEBUG_MODE = true;
 
 export default function RootNavigator() {
@@ -33,7 +42,6 @@ export default function RootNavigator() {
 
   const checkLoginStatus = async () => {
     try {
-      // 디버깅 모드일 때는 로그인 상태 체크 건너뛰기
       if (DEBUG_MODE) {
         setIsLoggedIn(true);
         setIsLoading(false);
@@ -63,19 +71,96 @@ export default function RootNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isLoggedIn ? (
         <>
-          {/* Main Tab Navigator */}
+          {/* Main Tab Navigator - 최상위 */}
           <Stack.Screen name="Main" component={MainTabNavigator} />
 
+          {/* Home Stack - 홈에서 접근하는 페이지들 */}
+          <Stack.Screen
+            name="Settings"
+            component={SettingsPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="Notification"
+            component={NotificationPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+
+          {/* Health Stack - 건강 관련 페이지들 */}
+          <Stack.Screen
+            name="Health"
+            component={HealthPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="MedicationSettings"
+            component={MedicationSettings}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="HealthDiaryEntry"
+            component={HealthDiaryEntry}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="HealthDiaryList"
+            component={HealthDiaryList}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="ManualMedicationEntry"
+            component={ManualMedicationEntry}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="PrescriptionOCR"
+            component={PrescriptionOCR}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="MedicationResultConfirm"
+            component={MedicationResultConfirm}
+            options={{ animation: 'slide_from_right' }}
+          />
+
           {/* Chat Stack */}
-          <Stack.Screen name="ChatMain" component={ChatMainPage} />
-          <Stack.Screen name="ChatRoom" component={ChatRoomPage} />
-          <Stack.Screen name="VoiceChat" component={VoiceChatPage} />
-          <Stack.Screen name="PromptSettings" component={PromptSettingsPage} />
-          <Stack.Screen name="ChatList" component={ChatListPage} />
+          <Stack.Screen
+            name="ChatMain"
+            component={ChatMainPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="ChatRoom"
+            component={ChatRoomPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="VoiceChat"
+            component={VoiceChatPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="PromptSettings"
+            component={PromptSettingsPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="ChatList"
+            component={ChatListPage}
+            options={{ animation: 'slide_from_right' }}
+          />
 
           {/* Mission Stack */}
-          <Stack.Screen name="DailyQuest" component={DailyQuestPage} />
-          <Stack.Screen name="MissionChat" component={MissionChatPage} />
+          <Stack.Screen
+            name="DailyQuest"
+            component={DailyQuestPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="MissionChat"
+            component={MissionChatPage}
+            options={{ animation: 'slide_from_right' }}
+          />
         </>
       ) : (
         <Stack.Screen name="Onboarding" component={OnboardingNavigator} />

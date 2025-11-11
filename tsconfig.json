@@ -10,15 +10,18 @@
     "baseUrl": "src",                       // ✅ src 기준으로 경로 인식
     "paths": {
       "@/*": ["*"]                          // ✅ 절대 경로 import 가능 (선택)
-    }
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src",
+    "src/types",
     "index.ts",
     "index.tsx",
     "App.tsx",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

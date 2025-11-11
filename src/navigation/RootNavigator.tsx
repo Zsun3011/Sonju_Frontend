@@ -5,9 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, View } from 'react-native';
 
 import OnboardingNavigator from './OnboardingNavigator';
-<<<<<<< HEAD
-import MainNavigator from './MainNavigator';
-=======
 import MainTabNavigator from '../navigation/MainTabNavigator';
 
 // Chat Pages
@@ -20,7 +17,6 @@ import ChatListPage from '../pages/AiChatPage/ChatList';
 // Mission Pages
 import DailyQuestPage from '../pages/DailyQuestPage/DailyQuestPage';
 import MissionChatPage from '../pages/DailyQuestPage/MissionChatPage';
->>>>>>> db993bc2795fa5f827ec51b3eeeac9df5cd3aff3
 
 const Stack = createNativeStackNavigator();
 
@@ -66,9 +62,6 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isLoggedIn ? (
-<<<<<<< HEAD
-        <Stack.Screen name="Main" component={MainNavigator} />
-=======
         <>
           {/* Main Tab Navigator */}
           <Stack.Screen name="Main" component={MainTabNavigator} />
@@ -84,7 +77,6 @@ export default function RootNavigator() {
           <Stack.Screen name="DailyQuest" component={DailyQuestPage} />
           <Stack.Screen name="MissionChat" component={MissionChatPage} />
         </>
->>>>>>> db993bc2795fa5f827ec51b3eeeac9df5cd3aff3
       ) : (
         <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
       )}

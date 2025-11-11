@@ -38,7 +38,7 @@ export const authAPI = {
         confirmationCode: data.verificationCode,
       });
       return response.data;
-    } catch (error: any) {npx react-native start --reset-cache
+    } catch (error: any) {
 
       throw error.response?.data || { success: false, message: '인증에 실패했습니다' };
     }

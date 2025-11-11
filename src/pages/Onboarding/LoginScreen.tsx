@@ -27,19 +27,30 @@ function logIn(
       Pool: userPool,
     });
 
-    cognitoUser.authenticateUser(authDetails, {
-      onSuccess: (result) => {
-        console.log('Cognito 로그인 성공:', result);
-        resolve(true);
-      },
-      onFailure: (err) => {
-        console.error('Cognito 로그인 실패:', err);
-        reject(new Error(err.message || '로그인 실패'));
-      },
-      newPasswordRequired: () => {
-        console.error('새 비밀번호가 필요합니다');
-        reject(new Error('새 비밀번호 설정이 필요합니다'));
-      },
+        cognitoUser.authenticateUser(authDetails, {
+            onSuccess: (result) => {
+                console.log(result);
+                const tokens = {
+                          accessToken: result.getAccessToken().getJwtToken(),
+                          idToken: result.getIdToken().getJwtToken(),
+                          refreshToken: result.getRefreshToken().getToken(),
+                };
+                console.log("보내는 Access Token:", tokens.accessToken);
+                return resolve(tokens);
+            },
+            onFailure: (err) => {
+                console.error(err);
+                return reject(err);
+            },
+            newPasswordRequired: (userAttributes, requiredAttributes) => {
+                return reject({
+                    code: "NewPasswordRequired",
+                    message: "새 비밀번호가 필요합니다.",
+                    userAttributes,
+                    requiredAttributes
+                });
+            },
+        });
     });
   });
 }
@@ -85,20 +96,28 @@ export default function LoginScreen({ navigation }: any) {
     // 로그인 처리
     setLoading(true);
     try {
-      // 1. Cognito 로그인
-      await logIn('+82' + phone.substring(1), password, myPoolData);
-      console.log('Cognito 로그인 성공:', { phone });
-
-      // 2. 백엔드에서 사용자 프로필 확인 (손주 정보 설정 여부 확인)
-      const profileResponse = await fetch(`http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/user/profile?phone=${encodeURIComponent('+82' + phone.substring(1))}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      // TODO: 백엔드 API 호출
+      console.log(phone);
+      const tokens = await logIn('+82' + phone.substring(1), password, myPoolData);
+      console.log(tokens);
+      console.log("Authorization 헤더:",
+          `Bearer ${tokens.accessToken}`
+      );
+      const response = await fetch("http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8002/auth/login", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+              token: tokens.idToken,
+          }),
       });
-
-      if (!profileResponse.ok) {
-        throw new Error('프로필 조회 실패');
+      console.log(response);
+      if (!response.ok) {
+          const error = await response.json();
+          console.error(error.detail);
+          Alert.alert('로그인 실패');
+          return;
       }
 
       const userProfile = await profileResponse.json();

@@ -78,7 +78,7 @@ export default function HomePage({ navigation }: any) {
             {/* 메시지 아이콘 */}
             <TouchableOpacity
               style={styles.messageButton}
-              onPress={() => navigation.navigate('Chat')}
+              onPress={() => navigation.navigate('ChatMain')}
             >
               <Image
                 source={require('../../../assets/images/말풍선아이콘.png')}

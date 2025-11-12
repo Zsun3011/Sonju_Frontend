@@ -445,7 +445,7 @@ const TodoListApp = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: ' #D9F2F5',
+    backgroundColor: '#D9F2F5',
   },
   header: {
     fontFamily: 'Pretendard-Medium',

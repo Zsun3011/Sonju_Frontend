@@ -30,6 +30,7 @@ import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm
 
 const Stack = createNativeStackNavigator();
 
+//디버깅용, true: 메인화면으로 바로 접속
 const DEBUG_MODE = false;
 
 export default function RootNavigator() {

@@ -259,4 +259,39 @@ export const MissionStyles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  emptyText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginTop: 12,
+  },
+
+  // ========== 중앙 정렬 컨테이너 ==========
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 32,
+    minHeight: 200,
+  },
+
+  // ========== 에러 상태 ==========
+  errorText: {
+    fontSize: 16,
+    color: colors.error,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
+  },
 });

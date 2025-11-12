@@ -7,8 +7,8 @@ export const colors = {
   primaryDark: '#019DB8',    // 어두운 하늘색
 
   // Background Colors (연한 하늘색 배경 - 이미지 기준)
-  background: '#D9F2F5',     // 메인 배경색
-  backgroundLight: '#E8F7FA', // 더 밝은 배경
+  background: '#B8E9F5',     // 메인 배경색 #D9F2F5
+  backgroundLight: '#B8E9F5', // 더 밝은 배경 #E8F7FA
   
   // Surface Colors
   white: '#FFFFFF',
@@ -23,9 +23,9 @@ export const colors = {
   borderLight: '#D0EEF2',    // 밝은 테두리
 
   // Text Colors
-  text: '#2D4550',           // 주요 텍스트 (진한 청록색)
-  textSecondary: '#7A9CA5',  // 보조 텍스트 (회색빛 청록색)
-  textMuted: '#A5BCC3',      // 흐린 텍스트
+  text: '#333',           // 주요 텍스트 (진한 청록색) '#2D4550',
+  textSecondary: '#333',  // 보조 텍스트 (회색빛 청록색) #7A9CA5
+  textMuted: '#333',      // 흐린 텍스트   '#A5BCC3',
 
   // Status Colors
   success: '#4CAF50',

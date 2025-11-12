@@ -251,12 +251,6 @@ const TodoListApp = () => {
             </TouchableOpacity>
           </View>
         ))}
-
-        {todos.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>할 일이 없습니다</Text>
-          </View>
-        )}
       </ScrollView>
 
       {/* Background overlay when buttons are shown */}
@@ -461,11 +455,11 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Pretendard-Medium',
     fontWeight: '600',
-    color: '#000000',
+    color: '#333',
   },
   subtitle: {
     fontFamily: 'Pretendard-Medium',
-    color: '#000000',
+    color: '#333',
     paddingHorizontal: 40,
     marginTop: 4,
     marginBottom: 20,
@@ -532,7 +526,7 @@ const styles = StyleSheet.create({
   },
   todoTitle: {
     fontSize: 20,
-    color: '#000',
+    color: '#333',
   },
   todoTitleCompleted: {
     textDecorationLine: 'line-through',
@@ -540,7 +534,7 @@ const styles = StyleSheet.create({
   },
   todoTime: {
     fontSize: 20,
-    color: '#000',
+    color: '#333',
   },
   iconButton: {
     padding: 0,
@@ -550,8 +544,8 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: 20,
+    color: '#333',
   },
 
   overlay: {

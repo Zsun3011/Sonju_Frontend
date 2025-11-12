@@ -145,7 +145,7 @@ export default function LoginScreen({ navigation }: any) {
   return (
     <View style={s.container1}>
       <Text style={s.title}>로그인</Text>
-      
+
       <TextInput
         style={s.input}
         placeholder="01012345678"
@@ -155,7 +155,7 @@ export default function LoginScreen({ navigation }: any) {
         maxLength={11}
         editable={!loading}
       />
-      
+
       <TextInput
         style={s.input}
         placeholder="비밀번호를 입력하세요"
@@ -165,9 +165,9 @@ export default function LoginScreen({ navigation }: any) {
         autoCapitalize="none"
         editable={!loading}
       />
-      
-      <TouchableOpacity 
-        style={s.smallButton} 
+
+      <TouchableOpacity
+        style={s.smallButton}
         onPress={handleLogin}
         disabled={loading}
       >

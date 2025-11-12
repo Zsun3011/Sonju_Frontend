@@ -156,4 +156,15 @@ export const styles = StyleSheet.create({
       backgroundColor: '#E0E0E0',
       marginVertical: 20,
     },
+
+    optionDescription: {
+      fontSize: 12,
+      color: '#6C757D',
+      marginTop: 4,
+      textAlign: 'center',
+    },
+
+    optionDescriptionSelected: {
+      color: '#02BFDC',
+    },
 });

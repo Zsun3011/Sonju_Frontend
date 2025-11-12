@@ -1,105 +1,70 @@
+// src/contexts/ChatContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Chat, Message, PromptType } from '../types/chat';
+import { Personality } from '../types/ai';
+import { Chat } from '../types/chat';
 
 interface ChatContextType {
+  // 프롬프트 관련
+  currentPrompt: Personality;
+  setCurrentPrompt: (prompt: Personality) => void;
+  
+  // 채팅 목록 관련
   chats: Chat[];
-  currentChat: Chat | null;
-  currentPrompt: PromptType;
-  setCurrentPrompt: (prompt: PromptType) => void;
-  createNewChat: () => void;
-  addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+  currentChatId: string | null;
   selectChat: (chatId: string) => void;
+  createChat: (title: string) => void;
   deleteChats: (chatIds: string[]) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  const [currentPrompt, setCurrentPrompt] = useState<Personality>(Personality.FRIENDLY);
   const [chats, setChats] = useState<Chat[]>([]);
-  const [currentChat, setCurrentChat] = useState<Chat | null>(null);
-  const [currentPrompt, setCurrentPrompt] = useState<PromptType>('gentle');
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
-  const createNewChat = () => {
+  /**
+   * 채팅 선택
+   */
+  const selectChat = (chatId: string) => {
+    setCurrentChatId(chatId);
+  };
+
+  /**
+   * 새 채팅 생성
+   */
+  const createChat = (title: string) => {
     const newChat: Chat = {
-      id: `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: '새로운 대화',
+      id: Date.now().toString(),
+      title: title,
       date: new Date(),
-      messages: [],
-      prompt: currentPrompt,
+      lastMessage: '',
     };
     setChats((prev) => [newChat, ...prev]);
-    setCurrentChat(newChat);
+    setCurrentChatId(newChat.id);
   };
 
-  const addMessage = (message: Omit<Message, 'id' | 'timestamp'>) => {
-    const newMessage: Message = {
-      ...message,
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date(),
-    };
-
-    setCurrentChat((prevChat) => {
-      // currentChat이 없으면 새로운 채팅을 생성
-      if (!prevChat) {
-        const newChat: Chat = {
-          id: `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          title: message.role === 'user'
-            ? message.content.slice(0, 20) + (message.content.length > 20 ? '...' : '')
-            : '새로운 대화',
-          date: new Date(),
-          messages: [newMessage],
-          prompt: currentPrompt,
-        };
-        setChats((prev) => [newChat, ...prev]);
-        return newChat;
-      }
-
-      const updatedChat = {
-        ...prevChat,
-        messages: [...prevChat.messages, newMessage],
-        date: new Date(),
-      };
-
-      // Auto-generate title from first user message
-      if (updatedChat.messages.length === 1 && message.role === 'user') {
-        updatedChat.title = message.content.slice(0, 20) + (message.content.length > 20 ? '...' : '');
-      }
-
-      // chats 배열도 업데이트
-      setChats((prev) => prev.map((chat) => (chat.id === updatedChat.id ? updatedChat : chat)));
-
-      return updatedChat;
-    });
-  };
-
-  const selectChat = (chatId: string) => {
-    setChats((prevChats) => {
-      const chat = prevChats.find((c) => c.id === chatId);
-      if (chat) {
-        setCurrentChat(chat);
-        setCurrentPrompt(chat.prompt);
-      }
-      return prevChats;
-    });
-  };
-
+  /**
+   * 채팅 삭제
+   */
   const deleteChats = (chatIds: string[]) => {
     setChats((prev) => prev.filter((chat) => !chatIds.includes(chat.id)));
-    if (currentChat && chatIds.includes(currentChat.id)) {
-      setCurrentChat(null);
+    
+    // 현재 선택된 채팅이 삭제되었다면 초기화
+    if (currentChatId && chatIds.includes(currentChatId)) {
+      setCurrentChatId(null);
     }
   };
 
   return (
     <ChatContext.Provider
       value={{
-        chats,
-        currentChat,
         currentPrompt,
         setCurrentPrompt,
-        createNewChat,
-        addMessage,
+        chats,
+        currentChatId,
         selectChat,
+        createChat,
         deleteChats,
       }}
     >
@@ -111,7 +76,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (!context) {
-    throw new Error('useChat must be used within a ChatProvider');
+    throw new Error('useChat must be used within ChatProvider');
   }
   return context;
 };

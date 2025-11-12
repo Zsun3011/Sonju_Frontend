@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onboardingStyles as s } from '../../styles/Template';
 import { CognitoUserPool, CognitoUser, AuthenticationDetails, } from 'amazon-cognito-identity-js'
 
@@ -90,7 +91,7 @@ export default function LoginScreen({ navigation }: any) {
       console.log('Cognito 로그인 성공:', { phone });
 
       // 2. 백엔드에서 사용자 프로필 확인 (손주 정보 설정 여부 확인)
-      const profileResponse = await fetch(`http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8000/user/profile?phone=${encodeURIComponent('+82' + phone.substring(1))}`, {
+      const profileResponse = await fetch(`http://ec2-15-165-129-83.ap-northeast-2.compute.amazonaws.com:8002/user/profile?phone=${encodeURIComponent('+82' + phone.substring(1))}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -107,12 +108,17 @@ export default function LoginScreen({ navigation }: any) {
       // 3. 손주 정보 설정 여부에 따라 분기
       if (userProfile.hasSonjuInfo || userProfile.has_sonju_info) {
         // 손주 정보가 이미 설정된 경우 - 메인 화면으로
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        });
+        // AsyncStorage에 로그인 정보 저장
+        await AsyncStorage.setItem('userToken', 'logged_in');
+        await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+        await AsyncStorage.setItem('userPhone', phone);
+
+        // RootNavigator가 자동으로 감지해서 Main 화면으로 전환됩니다
+        Alert.alert('로그인 성공', '환영합니다!');
       } else {
         // 손주 정보가 없는 경우 - 설정 단계로
+        await AsyncStorage.setItem('userToken', 'logged_in');
+        await AsyncStorage.setItem('userPhone', phone);
         navigation.navigate('SignUpSuccess');
       }
 

@@ -1,157 +1,177 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+// src/contexts/MissionContext.tsx
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { Mission } from '../types/mission';
+import { challengeAPI, Challenge } from '../services/challenge';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Mission, MissionState } from '../types/mission';
 
 interface MissionContextType {
   missions: Mission[];
-  totalPoints: number;
-  completeMission: (missionId: string) => void;
   currentMission: Mission | null;
+  loading: boolean;
+  error: string | null;
+  totalPoints: number;
   setCurrentMission: (mission: Mission | null) => void;
+  completeMission: (missionId: number) => void;
+  refreshMissions: () => Promise<void>;
 }
 
 const MissionContext = createContext<MissionContextType | undefined>(undefined);
 
-// 전체 미션 풀
-const MISSION_POOL: Omit<Mission, 'id' | 'completed'>[] = [
-  {
-    title: '오늘의 뉴스 3줄 요약',
-    tag: '#질문 따라하기',
-    description: '버튼을 눌러 돌쇠에게 "오늘의 뉴스 3줄 요약해줘"라고 질문해보세요!',
-    question: '오늘의 뉴스 3줄 요약해줘',
-    points: 3,
-  },
-  {
-    title: '내일 날씨 알아보기',
-    tag: '#정보 조사하기',
-    description: '버튼을 눌러 돌쇠에게 "내일 날씨 알려줘"라고 질문해보세요!',
-    question: '내일 날씨 알려줘',
-    points: 3,
-  },
-  {
-    title: '김치찜 조리법 물어보기',
-    tag: '#조건 조사하기',
-    description: '버튼을 눌러 돌쇠에게 "김치찜 조리법 알려줘"라고 질문해보세요!',
-    question: '김치찜 조리법 알려줘',
-    points: 3,
-  },
-  {
-    title: '가볼 만한 곳 추천받기',
-    tag: '#질문 따라하기',
-    description: '버튼을 눌러 돌쇠에게 "서울에서 가볼 만한 곳 추천해줘"라고 질문해보세요!',
-    question: '서울에서 가볼 만한 곳 추천해줘',
-    points: 3,
-  },
-  {
-    title: '건강 정보 알아보기',
-    tag: '#정보 조사하기',
-    description: '버튼을 눌러 돌쇠에게 "혈압 관리 방법 알려줘"라고 질문해보세요!',
-    question: '혈압 관리 방법 알려줘',
-    points: 3,
-  },
-  {
-    title: '운동법 물어보기',
-    tag: '#조건 조사하기',
-    description: '버튼을 눌러 돌쇠에게 "집에서 할 수 있는 간단한 운동법 알려줘"라고 질문해보세요!',
-    question: '집에서 할 수 있는 간단한 운동법 알려줘',
-    points: 3,
-  },
-];
+const COMPLETED_MISSIONS_KEY = 'completedMissions';
 
-// 랜덤으로 4개 미션 선택
-const getRandomMissions = (): Mission[] => {
-  const shuffled = [...MISSION_POOL].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 4).map((mission, index) => ({
-    ...mission,
-    id: `mission-${index}`,
-    completed: false,
-  }));
-};
-
-// 오늘 날짜 체크
-const isToday = (dateStr: string): boolean => {
-  const today = new Date().toDateString();
-  return new Date(dateStr).toDateString() === today;
-};
-
-export const MissionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const MissionProvider = ({ children }: { children: ReactNode }) => {
   const [missions, setMissions] = useState<Mission[]>([]);
-  const [totalPoints, setTotalPoints] = useState(0);
-  const [lastResetDate, setLastResetDate] = useState('');
   const [currentMission, setCurrentMission] = useState<Mission | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // AsyncStorage에서 상태 로드
-  useEffect(() => {
-    loadMissionState();
-  }, []);
-
-  const loadMissionState = async () => {
+  /**
+   * 오늘 완료한 미션 ID 목록 불러오기
+   */
+  const loadCompletedMissions = async (): Promise<number[]> => {
     try {
-      const savedState = await AsyncStorage.getItem('missionState');
-      if (savedState) {
-        const state: MissionState = JSON.parse(savedState);
-
-        // 오늘 날짜가 아니면 리셋
-        if (!isToday(state.lastResetDate)) {
-          const newMissions = getRandomMissions();
-          setMissions(newMissions);
-          setLastResetDate(new Date().toISOString());
-        } else {
-          setMissions(state.missions);
-          setTotalPoints(state.totalPoints);
-          setLastResetDate(state.lastResetDate);
+      const today = new Date().toDateString();
+      const stored = await AsyncStorage.getItem(COMPLETED_MISSIONS_KEY);
+      
+      if (stored) {
+        const data = JSON.parse(stored);
+        // 오늘 날짜가 아니면 초기화
+        if (data.date !== today) {
+          await AsyncStorage.removeItem(COMPLETED_MISSIONS_KEY);
+          return [];
         }
-      } else {
-        // 첫 실행
-        const newMissions = getRandomMissions();
-        setMissions(newMissions);
-        setLastResetDate(new Date().toISOString());
+        return data.ids || [];
       }
+      return [];
     } catch (error) {
-      console.error('Failed to load mission state:', error);
+      console.error('완료 미션 로드 실패:', error);
+      return [];
     }
   };
 
-  // 상태 변경 시 AsyncStorage에 저장
-  useEffect(() => {
-    if (missions.length > 0) {
-      saveMissionState();
-    }
-  }, [missions, lastResetDate, totalPoints]);
-
-  const saveMissionState = async () => {
+  /**
+   * 완료한 미션 ID 저장
+   */
+  const saveCompletedMissions = async (ids: number[]) => {
     try {
-      const state: MissionState = {
-        missions,
-        lastResetDate,
-        totalPoints,
-      };
-      await AsyncStorage.setItem('missionState', JSON.stringify(state));
+      const today = new Date().toDateString();
+      await AsyncStorage.setItem(
+        COMPLETED_MISSIONS_KEY,
+        JSON.stringify({ date: today, ids })
+      );
     } catch (error) {
-      console.error('Failed to save mission state:', error);
+      console.error('완료 미션 저장 실패:', error);
     }
   };
 
-  const completeMission = (missionId: string) => {
-    setMissions((prev) =>
-      prev.map((mission) => {
-        if (mission.id === missionId && !mission.completed) {
-          setTotalPoints((points) => points + mission.points);
-          return { ...mission, completed: true };
-        }
-        return mission;
-      })
-    );
+  /**
+   * Challenge를 Mission으로 변환
+   */
+  const convertChallengeToMission = (
+    challenge: Challenge,
+    completedIds: number[]
+  ): Mission => {
+    return {
+      id: challenge.id,
+      title: challenge.title,
+      subtitle: challenge.subtitle,
+      points: challenge.give_point,
+      completed: completedIds.includes(challenge.id),
+    };
   };
+
+  /**
+   * 미션(챌린지) 목록 불러오기
+   */
+  const fetchMissions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 백엔드에서 오늘의 챌린지 가져오기
+      const challenges = await challengeAPI.getDailyChallenges();
+
+      // 완료한 미션 목록 가져오기
+      const completedIds = await loadCompletedMissions();
+
+      // Challenge를 Mission으로 변환
+      const missionsData = challenges.map((challenge) =>
+        convertChallengeToMission(challenge, completedIds)
+      );
+
+      setMissions(missionsData);
+      console.log('✅ 미션 로드 성공:', missionsData);
+    } catch (err: any) {
+      const errorMessage = err.message || '미션을 불러올 수 없습니다.';
+      setError(errorMessage);
+      console.error('❌ 미션 로드 실패:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * 미션 완료 처리
+   */
+  const completeMission = async (missionId: number) => {
+    try {
+      // 로컬 상태 업데이트
+      setMissions((prev) =>
+        prev.map((mission) =>
+          mission.id === missionId ? { ...mission, completed: true } : mission
+        )
+      );
+
+      // AsyncStorage에 완료 상태 저장
+      const completedIds = await loadCompletedMissions();
+      if (!completedIds.includes(missionId)) {
+        completedIds.push(missionId);
+        await saveCompletedMissions(completedIds);
+      }
+
+      // TODO: 백엔드에 완료 API 호출 (백엔드에 API 추가 시 구현)
+      // await challengeAPI.completeChallenge(missionId, userId);
+
+      console.log('✅ 미션 완료:', missionId);
+    } catch (error) {
+      console.error('❌ 미션 완료 처리 실패:', error);
+    }
+  };
+
+  /**
+   * 미션 새로고침
+   */
+  const refreshMissions = async () => {
+    await fetchMissions();
+  };
+
+  /**
+   * 완료한 미션의 총 포인트 계산
+   */
+  const totalPoints = useMemo(() => {
+    return missions
+      .filter((mission) => mission.completed)
+      .reduce((sum, mission) => sum + mission.points, 0);
+  }, [missions]);
+
+  /**
+   * 초기 로드
+   */
+  useEffect(() => {
+    fetchMissions();
+  }, []);
 
   return (
     <MissionContext.Provider
       value={{
         missions,
-        totalPoints,
-        completeMission,
         currentMission,
+        loading,
+        error,
+        totalPoints,
         setCurrentMission,
+        completeMission,
+        refreshMissions,
       }}
     >
       {children}
@@ -162,7 +182,7 @@ export const MissionProvider: React.FC<{ children: ReactNode }> = ({ children })
 export const useMission = () => {
   const context = useContext(MissionContext);
   if (!context) {
-    throw new Error('useMission must be used within a MissionProvider');
+    throw new Error('useMission must be used within MissionProvider');
   }
   return context;
 };

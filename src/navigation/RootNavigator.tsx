@@ -30,7 +30,7 @@ import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm
 
 const Stack = createNativeStackNavigator();
 
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 
 export default function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);

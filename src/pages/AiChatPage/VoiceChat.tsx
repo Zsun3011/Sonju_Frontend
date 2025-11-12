@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ChatStackParamList } from '../../types/navigation';
+import ScaledText from '../../components/ScaledText';
 
 type VoiceChatNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'VoiceChat'>;
 
@@ -15,65 +16,70 @@ const VoiceChat = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>돌쇠</Text>
-        <View style={styles.rightSection}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="star-outline" size={24} color="#333" />
+        {/* 헤더 */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="chevron-back" size={24} color="#333" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="menu" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      {/* 메인 컨텐츠 */}
-      <View style={styles.mainContent}>
-        {/* TODO: 캐릭터 이미지 에셋 추가 (듣고 있는 모습) */}
-        <View style={styles.characterContainer}>
-          <View style={[styles.glow, isListening && styles.glowActive]} />
-          {/* Character image placeholder */}
-        </View>
+          {/* 큰 글씨 24 */}
+          <ScaledText style={styles.headerTitle} fontSize={24}>
+            돌쇠
+          </ScaledText>
 
-        <Text style={styles.statusText}>
-          {isListening ? '손주가 듣고 있어요.' : '무엇이든 물어보세요.'}
-        </Text>
-
-        {/* 음성 파형 표시 */}
-        {isListening && (
-          <View style={styles.waveformContainer}>
-            <View style={[styles.waveBar, { height: 20 }]} />
-            <View style={[styles.waveBar, { height: 40 }]} />
-            <View style={[styles.waveBar, { height: 30 }]} />
-            <View style={[styles.waveBar, { height: 50 }]} />
-            <View style={[styles.waveBar, { height: 35 }]} />
+          <View style={styles.rightSection}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="star-outline" size={24} color="#333" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="menu" size={24} color="#333" />
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
+        </View>
 
-      {/* 하단 컨트롤 */}
-      <View style={styles.controls}>
-        <TouchableOpacity style={styles.controlButton}>
-          <Icon name="videocam-outline" size={32} color="#7A9CA5" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={() => setIsListening(!isListening)}
-        >
-          <Icon name={isListening ? "mic" : "mic-off"} size={32} color="#7A9CA5" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Icon name="close" size={32} color="#7A9CA5" />
-        </TouchableOpacity>
+        {/* 메인 컨텐츠 */}
+        <View style={styles.mainContent}>
+          {/* TODO: 캐릭터 이미지 에셋 추가 (듣고 있는 모습) */}
+          <View style={styles.characterContainer}>
+            <View style={[styles.glow, isListening && styles.glowActive]} />
+          </View>
+
+          {/* 중간 글씨 20 */}
+          <ScaledText style={styles.statusText} fontSize={20}>
+            {isListening ? '손주가 듣고 있어요.' : '무엇이든 물어보세요.'}
+          </ScaledText>
+
+          {/* 음성 파형 표시 */}
+          {isListening && (
+            <View style={styles.waveformContainer}>
+              <View style={[styles.waveBar, { height: 20 }]} />
+              <View style={[styles.waveBar, { height: 40 }]} />
+              <View style={[styles.waveBar, { height: 30 }]} />
+              <View style={[styles.waveBar, { height: 50 }]} />
+              <View style={[styles.waveBar, { height: 35 }]} />
+            </View>
+          )}
+        </View>
+
+        {/* 하단 컨트롤 */}
+        <View style={styles.controls}>
+          <TouchableOpacity style={styles.controlButton}>
+            <Icon name="videocam-outline" size={32} color="#7A9CA5" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={() => setIsListening(!isListening)}
+          >
+            <Icon name={isListening ? 'mic' : 'mic-off'} size={32} color="#7A9CA5" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Icon name="close" size={32} color="#7A9CA5" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
     </SafeAreaView>
   );
 };
@@ -81,7 +87,7 @@ const VoiceChat = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
   },
   header: {
     flexDirection: 'row',
@@ -89,7 +95,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: 56,
     paddingHorizontal: 16,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
     borderBottomWidth: 1,
     borderBottomColor: '#B8E6EA',
   },
@@ -98,7 +104,7 @@ const styles = StyleSheet.create({
     width: 80,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 18, // ScaledText가 24 기준으로 스케일 적용
     fontWeight: '600',
     color: '#2D4550',
   },
@@ -138,7 +144,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   statusText: {
-    fontSize: 20,
+    fontSize: 20, // ScaledText가 20 기준으로 스케일 적용
     fontWeight: '500',
     color: '#2D4550',
     marginBottom: 24,
@@ -158,7 +164,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: 44,
+    marginBottom: -24,
     paddingHorizontal: 48,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,

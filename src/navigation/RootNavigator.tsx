@@ -30,7 +30,7 @@ import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm
 
 const Stack = createNativeStackNavigator();
 
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 export default function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +38,13 @@ export default function RootNavigator() {
 
   useEffect(() => {
     checkLoginStatus();
+
+    // AsyncStorage 변경 감지를 위한 interval 설정
+    const interval = setInterval(() => {
+      checkLoginStatus();
+    }, 1000); // 1초마다 체크
+
+    return () => clearInterval(interval);
   }, []);
 
   const checkLoginStatus = async () => {
@@ -51,11 +58,18 @@ export default function RootNavigator() {
       const token = await AsyncStorage.getItem('userToken');
       const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
 
-      setIsLoggedIn(!!token && hasCompletedOnboarding === 'true');
+      const newLoginState = !!token && hasCompletedOnboarding === 'true';
+
+      // 상태가 변경된 경우에만 업데이트
+      if (newLoginState !== isLoggedIn) {
+        setIsLoggedIn(newLoginState);
+      }
     } catch (error) {
       console.error('로그인 상태 확인 실패:', error);
     } finally {
-      setIsLoading(false);
+      if (isLoading) {
+        setIsLoading(false);
+      }
     }
   };
 

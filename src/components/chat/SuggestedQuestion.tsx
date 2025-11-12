@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
+import ScaledText from '../../components/ScaledText';
 
 interface SuggestedQuestionProps {
   question: string;
@@ -13,7 +14,10 @@ const SuggestedQuestion: React.FC<SuggestedQuestionProps> = ({ question, onClick
       onPress={() => onClick(question)}
       activeOpacity={0.7}
     >
-      <Text style={styles.text}>{question}</Text>
+      {/* 라벨: 중간 20 */}
+      <ScaledText style={styles.text} fontSize={20}>
+        {question}
+      </ScaledText>
     </TouchableOpacity>
   );
 };
@@ -31,7 +35,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   text: {
-    fontSize: 16,
+    fontSize: 20, // ScaledText가 20 기준으로 스케일 적용
     color: '#2D4550',
     textAlign: 'left',
   },

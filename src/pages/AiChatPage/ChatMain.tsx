@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import ChatInput from '../../components/chat/ChatInput';
 import { useChat } from '../../contexts/ChatContext';
 import { ChatStackParamList } from '../../types/navigation';
 import { ChatStyles} from '../../styles/ChatStyles';
+import ScaledText from '../../components/ScaledText';
 
 type ChatMainNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'ChatMain'>;
 
@@ -17,7 +18,7 @@ const ChatMain = () => {
   const { addMessage } = useChat();
   const [isLoading, setIsLoading] = useState(false);
 
-  const suggestedQuestions = ['오늘의 뉴스 요약', '오늘 날씨 어때?'];
+  const suggestedQuestions = ['오늘 뉴스 요약', '오늘 날씨 어때?'];
 
   const handleSendMessage = (message: string) => {
     setIsLoading(true);
@@ -57,10 +58,16 @@ const ChatMain = () => {
           />
         </View>
 
-        <Text style={styles.title}>무엇이든 물어보세요.</Text>
+        {/* 큰 글씨 24 */}
+        <ScaledText style={styles.title} fontSize={24}>
+          무엇이든 물어보세요.
+        </ScaledText>
 
         <View style={styles.suggestionsContainer}>
-          <Text style={styles.suggestionsTitle}>추천 질문</Text>
+          {/* 작은 글씨 18 */}
+          <ScaledText style={styles.suggestionsTitle} fontSize={18}>
+            추천 질문
+          </ScaledText>
           <View style={styles.suggestionsGrid}>
             {suggestedQuestions.map((question, index) => (
               <View key={index} style={styles.suggestionItem}>
@@ -83,7 +90,7 @@ const ChatMain = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
   },
   mainContent: {
     flex: 1,
@@ -112,7 +119,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   title: {
-    fontSize: 24,
+    fontSize: 24, // ScaledText가 무시하고 24 기준으로 스케일 적용
     fontWeight: '600',
     color: '#2D4550',
     marginBottom: 32,
@@ -122,7 +129,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   suggestionsTitle: {
-    fontSize: 14,
+    fontSize: 14, // ScaledText가 무시하고 18 기준으로 스케일 적용
     color: '#7A9CA5',
     marginBottom: 16,
     textAlign: 'center',

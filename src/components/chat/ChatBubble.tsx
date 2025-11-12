@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Message } from '../../types/chat';
+import ScaledText from '../../components/ScaledText';
 
 interface ChatBubbleProps {
   message: Message;
@@ -13,7 +14,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
     return (
       <View style={styles.userContainer}>
         <View style={styles.userBubble}>
-          <Text style={styles.userText}>{message.content}</Text>
+          {/* 본문: 중간 20 */}
+          <ScaledText style={styles.userText} fontSize={20}>
+            {message.content}
+          </ScaledText>
         </View>
       </View>
     );
@@ -29,7 +33,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
       */}
       <View style={styles.avatarPlaceholder} />
       <View style={styles.assistantBubble}>
-        <Text style={styles.assistantText}>{message.content}</Text>
+        {/* 본문: 중간 20 */}
+        <ScaledText style={styles.assistantText} fontSize={20}>
+          {message.content}
+        </ScaledText>
       </View>
     </View>
   );
@@ -56,8 +63,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   userText: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 20, // ScaledText가 20을 기준으로 스케일 적용
+    lineHeight: 28,
     color: '#FFFFFF',
   },
   assistantContainer: {
@@ -70,7 +77,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#B8E6EA',
+    backgroundColor: '#A5BCC3',
   },
   assistantBubble: {
     backgroundColor: '#FFFFFF',
@@ -86,8 +93,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   assistantText: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 20, // ScaledText가 20을 기준으로 스케일 적용
+    lineHeight: 28,
     color: '#2D4550',
   },
 });

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { Mission } from '../../types/mission';
 import { MissionStyles } from '../../styles/MissionStyles';
+import ScaledText from '../../components/ScaledText';
 
 interface MissionCardProps {
   mission: Mission;
@@ -13,15 +14,32 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onStart }) => {
     <View style={MissionStyles.missionCard}>
       <View style={MissionStyles.cardHeader}>
         <View style={MissionStyles.titleContainer}>
-          <Text style={MissionStyles.cardTitle}>{mission.title}</Text>
+          {/* 제목: 크게 24 */}
+          <ScaledText style={MissionStyles.cardTitle} fontSize={24}>
+            {mission.title}
+          </ScaledText>
+
           <View style={MissionStyles.tagContainer}>
-            <Text style={MissionStyles.tag}>{mission.tag}</Text>
+            {/* 태그: 작게 18 */}
+            <ScaledText style={MissionStyles.tag} fontSize={18}>
+              {mission.tag}
+            </ScaledText>
           </View>
         </View>
+
         <View style={MissionStyles.pointsContainer}>
-          <Text style={MissionStyles.points}>{mission.points}</Text>
-          <Text style={MissionStyles.pointsLabel}>포인트</Text>
-          <Text style={MissionStyles.coinIcon}>💰</Text>
+          {/* 포인트 숫자: 중간 20 */}
+          <ScaledText style={MissionStyles.points} fontSize={20}>
+            {mission.points}
+          </ScaledText>
+          {/* 포인트 라벨: 작게 18 */}
+          <ScaledText style={MissionStyles.pointsLabel} fontSize={18}>
+            포인트
+          </ScaledText>
+          {/* 이모지 아이콘은 사이즈 고정 텍스트이므로 18로 맞춤 */}
+          <ScaledText style={MissionStyles.coinIcon} fontSize={18}>
+            💰
+          </ScaledText>
         </View>
       </View>
 
@@ -34,14 +52,16 @@ const MissionCard: React.FC<MissionCardProps> = ({ mission, onStart }) => {
         disabled={mission.completed}
         activeOpacity={0.7}
       >
-        <Text
+        {/* 버튼 텍스트: 중간 20 */}
+        <ScaledText
           style={[
             MissionStyles.missionButtonText,
             mission.completed && MissionStyles.missionButtonTextCompleted,
           ]}
+          fontSize={20}
         >
           {mission.completed ? '미션 완료' : '미션 시작'}
-        </Text>
+        </ScaledText>
       </TouchableOpacity>
     </View>
   );

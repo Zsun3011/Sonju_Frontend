@@ -90,6 +90,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const deleteAllChats = () => {
+    setChats([]);
+    setCurrentChat(null);
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -115,3 +120,4 @@ export const useChat = () => {
   }
   return context;
 };
+

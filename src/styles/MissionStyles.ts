@@ -15,7 +15,7 @@ export const MissionStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     height: 56,
-    paddingHorizontal: 16,
+    paddingHorizontal: 30,
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -29,6 +29,7 @@ export const MissionStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
+    fontFamily: 'Pretendard-Medium',
     color: colors.text,
   },
   headerSpacer: {
@@ -48,6 +49,7 @@ export const MissionStyles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
+    right: 20
   },
 
   // ========== 미션 리스트 ==========
@@ -56,6 +58,7 @@ export const MissionStyles = StyleSheet.create({
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
+    marginBottom: 150
   },
 
   // ========== 미션 카드 스타일 ==========
@@ -79,13 +82,15 @@ export const MissionStyles = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
-    marginRight: 12,
+    marginRight: 1,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
+    fontFamily: 'Pretendard-Medium',
+
   },
   tagContainer: {
     backgroundColor: colors.secondary,

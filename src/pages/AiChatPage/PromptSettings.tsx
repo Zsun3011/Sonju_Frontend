@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -8,6 +8,7 @@ import { useChat } from '../../contexts/ChatContext';
 import { PromptType } from '../../types/chat';
 import { promptConfigs } from '../../utils/promptHelper';
 import { ChatStackParamList } from '../../types/navigation';
+import ScaledText from '../../components/ScaledText';
 
 type PromptSettingsNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'PromptSettings'>;
 
@@ -15,16 +16,13 @@ const PromptSettings = () => {
   const navigation = useNavigation<PromptSettingsNavigationProp>();
   const { currentPrompt, setCurrentPrompt } = useChat();
 
-  // 임시로 선택된 프롬프트를 저장하는 상태
   const [selectedPrompt, setSelectedPrompt] = useState<PromptType>(currentPrompt);
 
   const handleSelectPrompt = (promptType: PromptType) => {
-    // 임시 상태만 업데이트 (실제 저장은 하지 않음)
     setSelectedPrompt(promptType);
   };
 
   const handleSave = () => {
-    // 저장 버튼을 눌렀을 때만 실제로 프롬프트를 저장
     setCurrentPrompt(selectedPrompt);
     navigation.goBack();
   };
@@ -34,48 +32,61 @@ const PromptSettings = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>프롬프트 설정</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>저장</Text>
-        </TouchableOpacity>
+        {/* 헤더 */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="chevron-back" size={24} color="#333" />
+          </TouchableOpacity>
+
+          {/* 큰 글씨 24 */}
+          <ScaledText style={styles.headerTitle} fontSize={24}>
+            프롬프트 설정
+          </ScaledText>
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            {/* 중간 글씨 20 */}
+            <ScaledText style={styles.saveButtonText} fontSize={20}>
+              저장
+            </ScaledText>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.content}>
+          {/* TODO: 캐릭터 이미지 에셋 추가 */}
+          <View style={styles.characterContainer}>
+            <View style={styles.characterPlaceholder} />
+          </View>
+
+          {/* 중간 글씨 20 */}
+          <ScaledText style={styles.description} fontSize={20}>
+            프롬프트를 고르면{'\n'}손주의 목소리를 들을 수 있어요.
+          </ScaledText>
+
+          <View style={styles.promptList}>
+            {promptTypes.map((type) => {
+              const config = promptConfigs[type];
+              const isSelected = selectedPrompt === type;
+
+              return (
+                <TouchableOpacity
+                  key={type}
+                  style={[styles.promptItem, isSelected && styles.promptItemSelected]}
+                  onPress={() => handleSelectPrompt(type)}
+                  activeOpacity={0.7}
+                >
+                  {/* 작은 글씨 18 */}
+                  <ScaledText
+                    style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}
+                    fontSize={18}
+                  >
+                    {config.label}
+                  </ScaledText>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
       </View>
-
-      <ScrollView style={styles.content}>
-        {/* TODO: 캐릭터 이미지 에셋 추가 */}
-        <View style={styles.characterContainer}>
-          <View style={styles.characterPlaceholder} />
-        </View>
-
-        <Text style={styles.description}>
-          프롬프트를 고르면{'\n'}손주의 목소리를 들을 수 있어요.
-        </Text>
-
-        <View style={styles.promptList}>
-          {promptTypes.map((type) => {
-            const config = promptConfigs[type];
-            const isSelected = selectedPrompt === type;
-
-            return (
-              <TouchableOpacity
-                key={type}
-                style={[styles.promptItem, isSelected && styles.promptItemSelected]}
-                onPress={() => handleSelectPrompt(type)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}>
-                  {config.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
-    </View>
     </SafeAreaView>
   );
 };
@@ -83,7 +94,7 @@ const PromptSettings = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
   },
   header: {
     flexDirection: 'row',
@@ -91,7 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: 56,
     paddingHorizontal: 16,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
     borderBottomWidth: 1,
     borderBottomColor: '#B8E6EA',
   },
@@ -100,7 +111,7 @@ const styles = StyleSheet.create({
     width: 80,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 18, // ScaledText가 24 기준으로 스케일 적용
     fontWeight: '600',
     color: '#2D4550',
   },
@@ -110,7 +121,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: 16, // ScaledText가 20 기준으로 스케일 적용
     color: '#02BFDC',
     fontWeight: '600',
   },
@@ -126,10 +137,10 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#B8E6EA',
+    backgroundColor: '#A5BCC3',
   },
   description: {
-    fontSize: 18,
+    fontSize: 18, // ScaledText가 20 기준으로 스케일 적용
     fontWeight: '500',
     color: '#2D4550',
     textAlign: 'center',
@@ -158,7 +169,7 @@ const styles = StyleSheet.create({
     borderColor: '#02BFDC',
   },
   promptLabel: {
-    fontSize: 18,
+    fontSize: 18, // ScaledText가 18 기준으로 스케일 적용(작게)
     fontWeight: '500',
     color: '#2D4550',
     textAlign: 'center',

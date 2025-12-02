@@ -17,7 +17,7 @@ import ChatListPage from '../pages/AiChatPage/ChatList';
 import DailyQuestPage from '../pages/DailyQuestPage/DailyQuestPage';
 import MissionChatPage from '../pages/DailyQuestPage/MissionChatPage';
 
-// Home Pages (추가)
+// Home Pages
 import SettingsPage from '../pages/HomePage/SettingsPage';
 import NotificationPage from '../pages/HomePage/NotificationPage';
 import HealthPage from '../pages/HealthPage/HealthPage';
@@ -30,48 +30,51 @@ import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm
 
 const Stack = createNativeStackNavigator();
 
-const DEBUG_MODE = true;
+// 디버깅용, true: 메인화면으로 바로 접속
+const DEBUG_MODE = false;
 
 export default function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    checkLoginStatus();
+        checkLoginStatus();
 
-    // AsyncStorage 변경 감지를 위한 interval 설정
-    const interval = setInterval(() => {
-      checkLoginStatus();
-    }, 1000); // 1초마다 체크
+        // AsyncStorage 변경 감지를 위한 interval 설정
+        const interval = setInterval(() => {
+          checkLoginStatus();
+        }, 200); // 200ms마다 체크
 
-    return () => clearInterval(interval);
-  }, []);
+        return () => clearInterval(interval);
+      }, []); // 의존성 배열 비움
 
-  const checkLoginStatus = async () => {
-    try {
-      if (DEBUG_MODE) {
-        setIsLoggedIn(true);
-        setIsLoading(false);
-        return;
-      }
 
-      const token = await AsyncStorage.getItem('userToken');
-      const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
+    const checkLoginStatus = async () => {
+      try {
+        if (DEBUG_MODE) {
+          setIsLoggedIn(true);
+          setIsLoading(false);
+          return;
+        }
 
-      const newLoginState = !!token && hasCompletedOnboarding === 'true';
+        // accessToken과 온보딩 완료 여부로 로그인 상태 판단
+        const token = await AsyncStorage.getItem('accessToken');
+        const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
 
-      // 상태가 변경된 경우에만 업데이트
-      if (newLoginState !== isLoggedIn) {
+        const newLoginState = !!token && hasCompletedOnboarding === 'true';
+
+        // 항상 상태 업데이트 (React가 자동으로 동일한 값은 무시함)
         setIsLoggedIn(newLoginState);
+
+        console.log(`🔍 [RootNavigator] 상태 체크 - 토큰: ${!!token}, 온보딩: ${hasCompletedOnboarding}, 로그인: ${newLoginState}`);
+      } catch (error) {
+        console.error('❌ [RootNavigator] 로그인 상태 확인 실패:', error);
+      } finally {
+        if (isLoading) {
+          setIsLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('로그인 상태 확인 실패:', error);
-    } finally {
-      if (isLoading) {
-        setIsLoading(false);
-      }
-    }
-  };
+    };
 
   if (isLoading) {
     return (

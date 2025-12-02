@@ -5,16 +5,19 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
 import { healthStyles } from '../../styles/Health';
+import { getHealthMemosForMonth } from '../../api/healthApi';
 
 const STORAGE_KEY = '@health_diary_entries';
+const STATUS_STORAGE_KEY = '@health_diary_status';
 const MEDICATION_STORAGE_KEY = '@medication_data';
 
-type StatusType = 'Good' | 'Moderate' | 'Concerning' | null;
+type StatusType = 'healthy' | 'warning' | 'danger' | null;
 
 export default function HealthPage() {
   const navigation = useNavigation<any>();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [diaryEntries, setDiaryEntries] = useState<{ [key: string]: string }>({});
+  const [diaryStatuses, setDiaryStatuses] = useState<{ [key: string]: string }>({});
 
   // ✅ 복약 알림 카드용 상태
   const [reminderTimeText, setReminderTimeText] = useState<string>('—');
@@ -35,10 +38,47 @@ export default function HealthPage() {
 
   const loadDiaryEntries = async () => {
     try {
+      // 먼저 로컬 스토리지에서 로드 (빠른 표시)
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) setDiaryEntries(JSON.parse(stored));
+      if (stored) {
+        const localEntries = JSON.parse(stored);
+        // 현재 월의 데이터만 필터링
+        const filteredEntries: { [key: string]: string } = {};
+        Object.entries(localEntries).forEach(([date, content]) => {
+          if (date.startsWith(`${currentYear}/${String(currentMonth + 1).padStart(2, '0')}`)) {
+            // 문자열인지 확인
+            filteredEntries[date] = typeof content === 'string' ? content : '';
+          }
+        });
+        setDiaryEntries(filteredEntries);
+      }
+
+      // status 정보 로드
+      const statusStored = await AsyncStorage.getItem(STATUS_STORAGE_KEY);
+      if (statusStored) {
+        setDiaryStatuses(JSON.parse(statusStored));
+      }
+
+      // API에서 해당 월의 일지 가져오기 (최신 데이터로 업데이트)
+      const memos = await getHealthMemosForMonth(currentYear, currentMonth + 1);
+
+      // memos가 올바른 형식인지 확인
+      const validatedMemos: { [key: string]: string } = {};
+      Object.entries(memos).forEach(([key, value]) => {
+        validatedMemos[key] = typeof value === 'string' ? value : '';
+      });
+
+      setDiaryEntries(validatedMemos);
+
+      // 로컬 스토리지 전체 업데이트
+      const allStored = await AsyncStorage.getItem(STORAGE_KEY);
+      const allEntries = allStored ? JSON.parse(allStored) : {};
+      Object.assign(allEntries, validatedMemos);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allEntries));
+
     } catch (error) {
       console.error('일지 데이터 로드 실패:', error);
+      // API 실패 시 로컬 스토리지 데이터 유지
     }
   };
 
@@ -73,12 +113,11 @@ export default function HealthPage() {
     const now = new Date();
     const h = now.getHours();
 
-    // 현재 시간이 어느 구간에 속하는지 확인
-    if (h < 8) return 0;      // 오전 8시 이전 -> 오전 8시 구간
-    if (h < 12) return 0;     // 8시~12시 -> 오전 8시 구간
-    if (h < 18) return 1;     // 12시~18시 -> 오후 12시 구간
-    if (h < 22) return 2;     // 18시~22시 -> 오후 6시 구간
-    return 3;                 // 22시 이후 -> 오후 10시 구간
+    if (h < 8) return 0;
+    if (h < 12) return 0;
+    if (h < 18) return 1;
+    if (h < 22) return 2;
+    return 3;
   };
 
   const loadMedicationReminder = async () => {
@@ -98,7 +137,6 @@ export default function HealthPage() {
 
       const currentWindowIdx = getCurrentWindowIndex();
 
-      // 현재 시간 구간부터 오늘의 남은 구간 확인
       for (let i = currentWindowIdx; i < WINDOW_SLOTS.length; i++) {
         const window = WINDOW_SLOTS[i];
         const slot = todaySlots.find(s => s.time === window.time);
@@ -120,8 +158,6 @@ export default function HealthPage() {
         }
       }
 
-      // 모든 구간을 확인했지만 미체크 약이 없는 경우
-      const currentWindow = WINDOW_SLOTS[currentWindowIdx];
       setReminderTimeText('—');
       setReminderDescription('오늘 드실 약을 모두 드셨어요! 👍');
 
@@ -154,23 +190,33 @@ export default function HealthPage() {
 
   const hasEntryForDay = (day: number) => {
     const dateKey = `${currentYear}/${String(currentMonth + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
-    return !!(diaryEntries[dateKey] && diaryEntries[dateKey].trim().length > 0);
+    const entry = diaryEntries[dateKey];
+
+    // 타입 체크 추가: entry가 문자열인지 확인
+    if (typeof entry !== 'string') {
+      return false;
+    }
+
+    return entry.trim().length > 0;
   };
 
+  // AI가 분석한 status 값 그대로 사용
   const getStatusForDay = (day: number): StatusType => {
     if (!hasEntryForDay(day)) return null;
-    const dateKey = `${currentYear}/${String(currentMonth + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
-    const content = diaryEntries[dateKey];
 
-    let hash = 0;
-    for (let i = 0; i < content.length; i++) {
-      hash = ((hash << 5) - hash) + content.charCodeAt(i);
-      hash = hash & hash;
+    const dateKey = `${currentYear}/${String(currentMonth + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
+    const status = diaryStatuses[dateKey];
+
+    if (!status) return null;
+
+    const statusLower = status.toLowerCase();
+
+    // healthy, warning, danger 그대로 반환
+    if (statusLower === 'healthy' || statusLower === 'warning' || statusLower === 'danger') {
+      return statusLower as StatusType;
     }
-    const randomValue = Math.abs(hash) % 100;
-    if (randomValue < 60) return 'Good';
-    if (randomValue < 85) return 'Moderate';
-    return 'Concerning';
+
+    return null;
   };
 
   const renderCalendar = () => {
@@ -193,7 +239,9 @@ export default function HealthPage() {
           key={day}
           style={[
             healthStyles.calendarDay,
-            status && (healthStyles as any)[`status${status}`],
+            status === 'healthy' && (healthStyles as any).statusGood,
+            status === 'warning' && (healthStyles as any).statusModerate,
+            status === 'danger' && (healthStyles as any).statusConcerning,
             isToday(day) && healthStyles.todayBorder,
             future && healthStyles.disabledDay,
           ]}

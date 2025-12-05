@@ -1,13 +1,82 @@
-// src/pages/HomePage/HomePage.tsx (업데이트)
-import React from 'react';
+// src/pages/HomePage/HomePage.tsx
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
 import { styles } from '../../styles/Home';
-import { useMission } from '../../contexts/MissionContext';
+import { usePoints } from '../../contexts/PointContext';
 
 export default function HomePage({ navigation }: any) {
-  const { totalPoints } = useMission();
+  const { points } = usePoints();
+  const [equippedItems, setEquippedItems] = useState<{
+    [key: string]: string;
+  }>({});
+  const [sonjuName, setSonjuName] = useState('손주'); // ⭐ 기본값
+
+  // 화면이 포커스될 때마다 착용한 아이템 및 AI 프로필 로드
+  useFocusEffect(
+    React.useCallback(() => {
+      loadEquippedItems();
+      loadAiProfile(); // ⭐ AI 프로필 로드
+    }, [])
+  );
+
+  const loadEquippedItems = async () => {
+    try {
+      const equipped = await AsyncStorage.getItem('equippedItems');
+      if (equipped) {
+        setEquippedItems(JSON.parse(equipped));
+      }
+    } catch (error) {
+      console.error('착용 아이템 로드 실패:', error);
+    }
+  };
+
+  // ⭐ AI 프로필 로드 (닉네임)
+  const loadAiProfile = async () => {
+    try {
+      const aiProfileStr = await AsyncStorage.getItem('aiProfile');
+      if (aiProfileStr) {
+        const aiProfile = JSON.parse(aiProfileStr);
+        console.log('✅ AI 프로필 로드:', aiProfile);
+        setSonjuName(aiProfile.nickname || '손주');
+      } else {
+        console.log('⚠️ AI 프로필 없음, 기본 이름 사용');
+        setSonjuName('손주');
+      }
+    } catch (error) {
+      console.error('AI 프로필 로드 실패:', error);
+      setSonjuName('손주');
+    }
+  };
+
+  // 착용한 아이템에 따른 캐릭터 이미지 선택
+  const getCharacterImage = () => {
+    const equippedItemIds = Object.values(equippedItems);
+
+    if (equippedItemIds.includes('ribbon')) {
+      return require('../../../assets/images/리본손주.png');
+    }
+    if (equippedItemIds.includes('hiking-hat')) {
+      return require('../../../assets/images/등산손주.png');
+    }
+    if (equippedItemIds.includes('bunny-band')) {
+      return require('../../../assets/images/토끼손주.png');
+    }
+    if (equippedItemIds.includes('wizard-hat')) {
+      return require('../../../assets/images/마법사손주.png');
+    }
+    if (equippedItemIds.includes('crown')) {
+      return require('../../../assets/images/왕손주.png');
+    }
+    if(equippedItemIds.includes('glasses')){
+      return require('../../../assets/images/교복손주.png');
+    }
+
+    return require('../../../assets/images/sonjusmile.png');
+  };
+
   const quickMenus = [
     {
       id: 1,
@@ -63,14 +132,15 @@ export default function HomePage({ navigation }: any) {
 
         {/* 캐릭터 영역 */}
         <View style={styles.characterSection}>
+          {/* ⭐ AI 프로필 닉네임 표시 */}
           <ScaledText fontSize={28} style={styles.characterName}>
-            돌쇠
+            {sonjuName}
           </ScaledText>
 
           {/* 캐릭터 이미지 */}
           <View style={styles.characterContainer}>
             <Image
-              source={require('../../../assets/images/sonjusmile.png')}
+              source={getCharacterImage()}
               style={styles.characterImage}
               resizeMode="contain"
             />
@@ -93,14 +163,17 @@ export default function HomePage({ navigation }: any) {
           <View style={styles.pointContainer}>
             <View style={styles.pointSection}>
                 <ScaledText fontSize={24} style={styles.pointText}>
-                  {totalPoints} 포인트
+                  {points} 포인트
                 </ScaledText>
                 <Image
                   source={require('../../../assets/images/코인.png')}
                   style={styles.Icons}
                 />
             </View>
-            <TouchableOpacity style={styles.pointSection}>
+            <TouchableOpacity 
+              style={styles.pointSection}
+              onPress={() => navigation.navigate('Shop')}
+            >
               <ScaledText fontSize={18} style={styles.pointButton}>
                 꾸미기
               </ScaledText>

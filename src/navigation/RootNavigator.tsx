@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, AppState, AppStateStatus, DeviceEventEmitter } from 'react-native';
 
 import OnboardingNavigator from './OnboardingNavigator';
 import MainTabNavigator from './MainTabNavigator';
@@ -16,6 +16,9 @@ import ChatListPage from '../pages/AiChatPage/ChatList';
 // Mission Pages
 import DailyQuestPage from '../pages/DailyQuestPage/DailyQuestPage';
 import MissionChatPage from '../pages/DailyQuestPage/MissionChatPage';
+
+// Shop Pages
+import ItemShopPage from '../pages/ItemShopPage/ItemShopPage';
 
 // Home Pages (추가)
 import SettingsPage from '../pages/HomePage/SettingsPage';
@@ -39,14 +42,30 @@ export default function RootNavigator() {
 
   useEffect(() => {
     checkLoginStatus();
-
-    // AsyncStorage 변경 감지를 위한 interval 설정
-    const interval = setInterval(() => {
-      checkLoginStatus();
-    }, 1000); // 1초마다 체크
-
-    return () => clearInterval(interval);
+    
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    // ⭐ 로그인 성공 이벤트 리스너 추가
+    const loginSuccessListener = DeviceEventEmitter.addListener(
+      'LOGIN_SUCCESS',
+      () => {
+        console.log('🎉 로그인 성공 이벤트 수신 - 상태 재확인');
+        checkLoginStatus();
+      }
+    );
+    
+    return () => {
+      appStateSubscription?.remove();
+      loginSuccessListener.remove(); // ⭐ 정리
+    };
   }, []);
+
+  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+    if (nextAppState === 'active') {
+      console.log('📱 앱이 활성화됨 - 로그인 상태 재확인');
+      checkLoginStatus();
+    }
+  };
 
   const checkLoginStatus = async () => {
     try {
@@ -59,14 +78,20 @@ export default function RootNavigator() {
       const token = await AsyncStorage.getItem('userToken');
       const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
 
+      console.log('🔍 로그인 상태 확인:', { 
+        hasToken: !!token, 
+        hasCompletedOnboarding 
+      });
+
       const newLoginState = !!token && hasCompletedOnboarding === 'true';
 
-      // 상태가 변경된 경우에만 업데이트
       if (newLoginState !== isLoggedIn) {
+        console.log('✅ 로그인 상태 변경:', isLoggedIn, '→', newLoginState);
         setIsLoggedIn(newLoginState);
       }
     } catch (error) {
-      console.error('로그인 상태 확인 실패:', error);
+      console.error('❌ 로그인 상태 확인 실패:', error);
+      setIsLoggedIn(false);
     } finally {
       if (isLoading) {
         setIsLoading(false);
@@ -74,9 +99,10 @@ export default function RootNavigator() {
     }
   };
 
+
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' }}>
         <ActivityIndicator size="large" color="#02BFDC" />
       </View>
     );
@@ -174,6 +200,13 @@ export default function RootNavigator() {
           <Stack.Screen
             name="MissionChat"
             component={MissionChatPage}
+            options={{ animation: 'slide_from_right' }}
+          />
+
+          {/* Shop Stack */}
+          <Stack.Screen
+            name="Shop"
+            component={ItemShopPage}
             options={{ animation: 'slide_from_right' }}
           />
         </>

@@ -4,6 +4,7 @@ import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
+import PageHeader from '../../components/common/PageHeader';
 import { healthStyles } from '../../styles/Health';
 
 const STORAGE_KEY = '@health_diary_entries';
@@ -245,18 +246,10 @@ export default function HealthPage() {
         resizeMode="contain"
       />
 
-      <View style={healthStyles.header}>
-        <TouchableOpacity style={healthStyles.backButton} onPress={handleBackPress}>
-          <Image
-            source={require('../../../assets/images/왼쪽화살표.png')}
-            style={healthStyles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <ScaledText fontSize={24} style={healthStyles.headerTitle}>
-          건강
-        </ScaledText>
-      </View>
+      <PageHeader
+        title="건강"
+        onBack={handleBackPress}
+      />
 
       <ScrollView contentContainerStyle={healthStyles.scrollContent}>
         <View style={healthStyles.heroSection}>

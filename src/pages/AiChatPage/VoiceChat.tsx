@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import ScaledText from '../../components/ScaledText';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
+import PageHeader from '../../components/common/PageHeader';
 import { ChatStackParamList } from '../../types/navigation';
 
 type VoiceChatNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'VoiceChat'>;
@@ -16,20 +18,21 @@ const VoiceChat = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
       {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>돌쇠</Text>
-        <View style={styles.rightSection}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="star-outline" size={24} color="#333" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="menu" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PageHeader
+        title="돌쇠"
+        onBack={() => navigation.goBack()}
+        safeArea={true}
+        rightButton={
+          <View style={styles.headerButtons}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="star-outline" size={24} color="#333" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="menu" size={24} color="#333" />
+            </TouchableOpacity>
+          </View>
+        }
+      />
 
       {/* 메인 컨텐츠 */}
       <View style={styles.mainContent}>
@@ -39,9 +42,9 @@ const VoiceChat = () => {
           {/* Character image placeholder */}
         </View>
 
-        <Text style={styles.statusText}>
+        <ScaledText fontSize={20} style={styles.statusText}>
           {isListening ? '손주가 듣고 있어요.' : '무엇이든 물어보세요.'}
-        </Text>
+        </ScaledText>
 
         {/* 음성 파형 표시 */}
         {isListening && (
@@ -83,30 +86,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#D9F2F5',
   },
-  header: {
+  headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 56,
-    paddingHorizontal: 16,
-    backgroundColor: '#D9F2F5',
-    borderBottomWidth: 1,
-    borderBottomColor: '#B8E6EA',
-  },
-  backButton: {
-    padding: 8,
-    width: 80,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2D4550',
-  },
-  rightSection: {
-    width: 80,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
     gap: 8,
   },
   iconButton: {
@@ -138,7 +120,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   statusText: {
-    fontSize: 20,
     fontWeight: '500',
     color: '#2D4550',
     marginBottom: 24,

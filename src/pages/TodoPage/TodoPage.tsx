@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
@@ -16,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
 import Voice from '@react-native-voice/voice';
 import ScaledText from '../../components/ScaledText';
+import PageHeader from '../../components/common/PageHeader';
 
 
 interface TodoItem {
@@ -177,12 +177,10 @@ const TodoListApp = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <ScaledText fontSize={24} style={styles.title}>할 일</ScaledText>
-      </View>
-
-      <ScaledText fontSize={20} style={styles.subtitle}>목록을 적어 실천해요.</ScaledText>
-
+      <PageHeader
+        title="할 일"
+        safeArea={true}
+      />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -207,20 +205,20 @@ const TodoListApp = () => {
             </TouchableOpacity>
 
             <View style={styles.todoContent}>
-              <Text style={[
+              <ScaledText fontSize={20} style={[
                 styles.todoTitle,
                 todo.completed && styles.todoTitleCompleted
               ]}>
                 {todo.title}
-              </Text>
+              </ScaledText>
             </View>
 
-            <Text style={[
+            <ScaledText fontSize={20} style={[
               styles.todoTime,
               todo.completed && styles.todoTitleCompleted
             ]}>
               {todo.time}
-            </Text>
+            </ScaledText>
 
             <TouchableOpacity
               style={styles.iconButton}
@@ -254,7 +252,7 @@ const TodoListApp = () => {
 
         {todos.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>할 일이 없습니다</Text>
+            <ScaledText fontSize={16} style={styles.emptyText}>할 일이 없습니다</ScaledText>
           </View>
         )}
       </ScrollView>
@@ -289,7 +287,7 @@ const TodoListApp = () => {
                   source={require('../../../assets/images/직접쓰기.png')}
                   resizeMode="contain"
                 />
-                <Text style={styles.fabButtonText}>직접 쓰기</Text>
+                <ScaledText fontSize={20} style={styles.fabButtonText}>직접 쓰기</ScaledText>
               </TouchableOpacity>
             </Animated.View>
 
@@ -311,7 +309,7 @@ const TodoListApp = () => {
                   source={require('../../../assets/images/받아쓰기.png')}
                   resizeMode="contain"
                 />
-                <Text style={styles.fabButtonText}>받아쓰기</Text>
+                <ScaledText fontSize={20} style={styles.fabButtonText}>받아쓰기</ScaledText>
               </TouchableOpacity>
             </Animated.View>
           </>
@@ -345,12 +343,12 @@ const TodoListApp = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
+            <ScaledText fontSize={20} style={styles.modalTitle}>
               {editingTodo ? '할 일 수정' : '오늘 할 일'}
-            </Text>
+            </ScaledText>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>제목</Text>
+              <ScaledText fontSize={16} style={styles.inputLabel}>제목</ScaledText>
               <TextInput
                 style={styles.textInput}
                 value={title}
@@ -359,19 +357,19 @@ const TodoListApp = () => {
                 placeholderTextColor="#999"
               />
               {isListening && (
-                <Text style={styles.listeningText}>듣고 있습니다...</Text>
+                <ScaledText fontSize={14} style={styles.listeningText}>듣고 있습니다...</ScaledText>
               )}
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>시간</Text>
+              <ScaledText fontSize={16} style={styles.inputLabel}>시간</ScaledText>
               <View style={styles.timePickerRow}>
                 <View style={styles.picker}>
                   <TouchableOpacity
                     style={styles.pickerButton}
                     onPress={() => setPeriod(period === '오전' ? '오후' : '오전')}
                   >
-                    <Text style={styles.pickerText}>{period}</Text>
+                    <ScaledText fontSize={16} style={styles.pickerText}>{period}</ScaledText>
                   </TouchableOpacity>
                 </View>
 
@@ -409,7 +407,7 @@ const TodoListApp = () => {
                   setPeriod('오전');
                 }}
               >
-                <Text style={styles.cancelButtonText}>취소</Text>
+                <ScaledText fontSize={16} style={styles.cancelButtonText}>취소</ScaledText>
               </TouchableOpacity>
 
               {editingTodo && (
@@ -422,7 +420,7 @@ const TodoListApp = () => {
                     setTitle('');
                   }}
                 >
-                  <Text style={styles.deleteButtonText}>삭제</Text>
+                  <ScaledText fontSize={16} style={styles.deleteButtonText}>삭제</ScaledText>
                 </TouchableOpacity>
               )}
 
@@ -430,9 +428,9 @@ const TodoListApp = () => {
                 style={[styles.modalButton, styles.addButton]}
                 onPress={handleAddTodo}
               >
-                <Text style={styles.addButtonText}>
+                <ScaledText fontSize={16} style={styles.addButtonText}>
                   {editingTodo ? '저장' : '추가하기'}
-                </Text>
+                </ScaledText>
               </TouchableOpacity>
             </View>
           </View>
@@ -446,22 +444,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#D9F2F5',
-  },
-  header: {
-    fontFamily: 'Pretendard-Medium',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 60,
-    gap: 12,
-  },
-  backButton: {
-    padding: 4,
-  },
-  title: {
-    fontFamily: 'Pretendard-Medium',
-    fontWeight: '600',
-    color: '#000000',
   },
   subtitle: {
     fontFamily: 'Pretendard-Medium',
@@ -531,7 +513,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   todoTitle: {
-    fontSize: 20,
     color: '#000',
   },
   todoTitleCompleted: {
@@ -539,7 +520,6 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   todoTime: {
-    fontSize: 20,
     color: '#000',
   },
   iconButton: {
@@ -550,7 +530,6 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
     color: '#999',
   },
 
@@ -603,7 +582,6 @@ const styles = StyleSheet.create({
   },
   fabButtonText: {
     color: '#fff',
-    fontSize: 20,
     fontWeight: '500',
   },
   modalOverlay: {
@@ -621,7 +599,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   modalTitle: {
-    fontSize: 20,
     fontWeight: '600',
     marginBottom: 24,
     color: '#000',
@@ -630,7 +607,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 16,
     fontWeight: '500',
     marginBottom: 8,
     color: '#000',
@@ -644,7 +620,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   listeningText: {
-    fontSize: 14,
     color: '#02BFDC',
     marginTop: 8,
   },
@@ -664,7 +639,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pickerText: {
-    fontSize: 16,
     color: '#000',
   },
   pickerInput: {
@@ -688,7 +662,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   cancelButtonText: {
-    fontSize: 16,
     fontWeight: '500',
     color: '#666',
   },
@@ -696,7 +669,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#02BFDC',
   },
   addButtonText: {
-    fontSize: 16,
     fontWeight: '500',
     color: '#fff',
   },
@@ -704,7 +676,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
   deleteButtonText: {
-    fontSize: 16,
     fontWeight: '500',
     color: '#fff',
   },

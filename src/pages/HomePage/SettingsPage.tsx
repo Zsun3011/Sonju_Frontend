@@ -1,7 +1,8 @@
 // src/pages/HomePage/SettingsPage.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import ScaledText from '../../components/ScaledText';
 
 export default function SettingsPage() {
   const navigation = useNavigation();
@@ -12,9 +13,9 @@ export default function SettingsPage() {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.backText}>← 설정</Text>
+        <ScaledText fontSize={24} style={styles.backText}>← 설정</ScaledText>
       </TouchableOpacity>
-      <Text style={styles.title}>추후 개발</Text>
+      <ScaledText fontSize={32} style={styles.title}>추후 개발</ScaledText>
     </View>
   );
 }
@@ -30,12 +31,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backText: {
-      fontSize: 24,
       fontFamily: 'Pretendard-Medium',
       color: '#000000',
   },
   title: {
-    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 100,

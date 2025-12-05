@@ -1,124 +1,143 @@
 // src/contexts/PointContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { challengeAPI } from '../services/challenge';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../api/config';
 
+/**
+ * 사용자 정보 타입
+ */
+interface UserInfo {
+  phone_number: string;
+  name: string;
+  gender: string;
+  birthdate: string;
+  point: number;
+  is_premium: boolean;
+}
+
+/**
+ * PointContext 타입
+ */
 interface PointContextType {
   points: number;
+  isPremium: boolean;
+  userInfo: UserInfo | null;
   loading: boolean;
   error: string | null;
   refreshPoints: () => Promise<void>;
+  deductPoints: (amount: number) => void;
   addPoints: (amount: number) => void;
-  setPoints: (amount: number) => void;
 }
 
 const PointContext = createContext<PointContextType | undefined>(undefined);
 
-const POINTS_CACHE_KEY = 'userPoints';
-
 export const PointProvider = ({ children }: { children: ReactNode }) => {
-  const [points, setPoints] = useState<number>(0);
+  const [points, setPoints] = useState(0);
+  const [isPremium, setIsPremium] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * 로컬 캐시에서 포인트 불러오기
+   * AccessToken 가져오기
    */
-  const loadCachedPoints = async (): Promise<number> => {
+  const getAccessToken = async (): Promise<string> => {
+    const token = await AsyncStorage.getItem('accessToken');
+    if (!token) {
+      throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+    }
+    return token;
+  };
+
+  /**
+   * 사용자 정보 조회 (포인트 포함)
+   * GET /profile/me
+   */
+  const refreshPoints = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const cached = await AsyncStorage.getItem(POINTS_CACHE_KEY);
-      if (cached) {
-        const cachedPoints = parseInt(cached, 10);
-        setPoints(cachedPoints);
-        return cachedPoints;
+      const token = await getAccessToken();
+
+      // 사용자 정보 조회 API 호출
+      // ✅ /profile/me 엔드포인트 사용
+      const response = await fetch(`${API_BASE_URL}/profile/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // 토큰 만료 또는 인증 실패
+          await AsyncStorage.removeItem('accessToken');
+          throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+        }
+        
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || '사용자 정보를 불러올 수 없습니다.');
       }
-      return 0;
-    } catch (error) {
-      console.error('캐시된 포인트 로드 실패:', error);
-      return 0;
-    }
-  };
 
-  /**
-   * 포인트를 로컬 캐시에 저장
-   */
-  const saveCachedPoints = async (amount: number) => {
-    try {
-      await AsyncStorage.setItem(POINTS_CACHE_KEY, amount.toString());
-    } catch (error) {
-      console.error('포인트 캐시 저장 실패:', error);
-    }
-  };
-
-  /**
-   * 서버에서 포인트 조회
-   */
-  const fetchPoints = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const serverPoints = await challengeAPI.getMyPoints();
-      setPoints(serverPoints);
-      await saveCachedPoints(serverPoints);
-
-      console.log('✅ 포인트 조회 성공:', serverPoints);
-    } catch (err: any) {
-      const errorMessage = err.message || '포인트를 불러올 수 없습니다.';
+      const data: UserInfo = await response.json();
+      
+      // 상태 업데이트
+      setUserInfo(data);
+      setPoints(data.point);
+      setIsPremium(data.is_premium);
+      
+      console.log('✅ 사용자 정보 조회 성공:', {
+        name: data.name,
+        point: data.point,
+        is_premium: data.is_premium,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '포인트를 불러오는데 실패했습니다.';
       setError(errorMessage);
-      console.error('❌ 포인트 조회 실패:', err);
-
-      // 실패 시 캐시된 포인트 사용
-      await loadCachedPoints();
+      console.error('❌ 사용자 정보 조회 실패:', err);
+      
+      // 401 에러인 경우 포인트를 0으로 초기화
+      if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
+        setPoints(0);
+        setIsPremium(false);
+        setUserInfo(null);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   /**
-   * 포인트 새로고침
+   * 포인트 차감 (로컬만)
+   * 서버 동기화는 refreshPoints()로
    */
-  const refreshPoints = async () => {
-    await fetchPoints();
-  };
+  const deductPoints = useCallback((amount: number) => {
+    setPoints(prev => Math.max(0, prev - amount));
+    console.log(`💰 포인트 차감: -${amount}`);
+  }, []);
 
   /**
-   * 포인트 추가 (로컬 상태)
+   * 포인트 추가 (로컬만)
+   * 서버 동기화는 refreshPoints()로
    */
-  const addPoints = (amount: number) => {
-    setPoints((prev) => {
-      const newPoints = prev + amount;
-      saveCachedPoints(newPoints);
-      return newPoints;
-    });
-  };
-
-  /**
-   * 포인트 설정 (서버 응답 반영)
-   */
-  const setPointsValue = (amount: number) => {
-    setPoints(amount);
-    saveCachedPoints(amount);
-  };
-
-  /**
-   * 초기 로드
-   */
-  useEffect(() => {
-    loadCachedPoints().then(() => {
-      fetchPoints();
-    });
+  const addPoints = useCallback((amount: number) => {
+    setPoints(prev => prev + amount);
+    console.log(`💰 포인트 추가: +${amount}`);
   }, []);
 
   return (
     <PointContext.Provider
       value={{
         points,
+        isPremium,
+        userInfo,
         loading,
         error,
         refreshPoints,
+        deductPoints,
         addPoints,
-        setPoints: setPointsValue,
       }}
     >
       {children}

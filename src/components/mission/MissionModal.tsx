@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity } from 'react-native';
+import { View, Modal, TouchableOpacity } from 'react-native';
+import ScaledText from '../ScaledText';
 import { Mission } from '../../types/mission';
 import { MissionStyles } from '../../styles/MissionStyles';
 
@@ -18,20 +19,20 @@ const MissionModal: React.FC<MissionModalProps> = ({ mission, visible, onClose, 
       <View style={MissionStyles.modalOverlay}>
         <View style={MissionStyles.modalContainer}>
           <View style={MissionStyles.modalHeader}>
-            <Text style={MissionStyles.modalTitle}>{mission.title}</Text>
+            <ScaledText fontSize={20} style={MissionStyles.modalTitle}>{mission.title}</ScaledText>
             <View style={MissionStyles.tagContainer}>
-              <Text style={MissionStyles.tag}>{mission.tag}</Text>
+              <ScaledText fontSize={12} style={MissionStyles.tag}>{mission.tag}</ScaledText>
             </View>
           </View>
 
-          <Text style={MissionStyles.modalDescription}>{mission.description}</Text>
+          <ScaledText fontSize={16} style={MissionStyles.modalDescription}>{mission.description}</ScaledText>
 
           <TouchableOpacity
             style={MissionStyles.modalButton}
             onPress={onStartChat}
             activeOpacity={0.7}
           >
-            <Text style={MissionStyles.modalButtonText}>채팅으로 이동</Text>
+            <ScaledText fontSize={16} style={MissionStyles.modalButtonText}>채팅으로 이동</ScaledText>
           </TouchableOpacity>
         </View>
       </View>

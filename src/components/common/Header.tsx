@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import ScaledText from '../ScaledText';
 
 interface HeaderProps {
   title: string;
@@ -23,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ title, showBack = true, onStar, onMenu 
         )}
       </View>
 
-      <Text style={styles.title}>{title}</Text>
+      <ScaledText fontSize={18} style={styles.title}>{title}</ScaledText>
 
       <View style={styles.rightSection}>
         {onStar && (
@@ -58,7 +59,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
     fontWeight: '600',
     color: '#2D4550',
     textAlign: 'center',

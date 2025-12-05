@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
+import ScaledText from '../ScaledText';
 
 interface SuggestedQuestionProps {
   question: string;
@@ -13,7 +14,7 @@ const SuggestedQuestion: React.FC<SuggestedQuestionProps> = ({ question, onClick
       onPress={() => onClick(question)}
       activeOpacity={0.7}
     >
-      <Text style={styles.text}>{question}</Text>
+      <ScaledText fontSize={16} style={styles.text}>{question}</ScaledText>
     </TouchableOpacity>
   );
 };
@@ -31,7 +32,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   text: {
-    fontSize: 16,
     color: '#2D4550',
     textAlign: 'left',
   },

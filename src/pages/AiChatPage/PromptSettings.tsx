@@ -1,18 +1,19 @@
 // src/screens/PromptSettings.tsx
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
   Alert,
-  ActivityIndicator 
+  ActivityIndicator
 } from 'react-native';
+import ScaledText from '../../components/ScaledText';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import PageHeader from '../../components/common/PageHeader';
 import { useChat } from '../../contexts/ChatContext';
 import { Personality } from '../../types/ai';
 import { promptConfigs } from '../../utils/promptHelper';
@@ -51,31 +52,30 @@ const PromptSettings = () => {
     setSelectedPrompt(promptType);
   };
 
-  const handleSave = async () => {
-    try {
-      setLoading(true);
+  // handleSave 함수 수정
+const handleSave = async () => {
+  try {
+    setLoading(true);
 
-      // 백엔드에 프롬프트 업데이트
-      await aiProfileAPI.updateAiProfile({
-        personality: selectedPrompt,
-      });
+    // 백엔드에 성격 업데이트 (PUT /ai/preferences)
+    await aiProfileAPI.updatePreferences(selectedPrompt);
 
-      // 로컬 상태 업데이트
-      setCurrentPrompt(selectedPrompt);
+    // 로컬 상태 업데이트
+    setCurrentPrompt(selectedPrompt);
 
-      Alert.alert('저장 완료', `${aiNickname}의 성격이 변경되었습니다.`, [
-        {
-          text: '확인',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
-    } catch (error: any) {
-      console.error('프롬프트 저장 실패:', error);
-      Alert.alert('오류', '성격 변경에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    Alert.alert('저장 완료', `${aiNickname}의 성격이 변경되었습니다.`, [
+      {
+        text: '확인',
+        onPress: () => navigation.goBack(),
+      },
+    ]);
+  } catch (error: any) {
+    console.error('프롬프트 저장 실패:', error);
+    Alert.alert('오류', error.message || '성격 변경에 실패했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const promptTypes: Personality[] = [
     Personality.FRIENDLY,
@@ -88,23 +88,24 @@ const PromptSettings = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Icon name="chevron-back" size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>프롬프트 설정</Text>
-          <TouchableOpacity 
-            style={styles.saveButton} 
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#02BFDC" />
-            ) : (
-              <Text style={styles.saveButtonText}>저장</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        <PageHeader
+          title="프롬프트 설정"
+          onBack={() => navigation.goBack()}
+          safeArea={true}
+          rightButton={
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#02BFDC" />
+              ) : (
+                <ScaledText fontSize={16} style={styles.saveButtonText}>저장</ScaledText>
+              )}
+            </TouchableOpacity>
+          }
+        />
 
         <ScrollView style={styles.content}>
           {/* 캐릭터 이미지 */}
@@ -112,13 +113,13 @@ const PromptSettings = () => {
             <View style={styles.characterPlaceholder}>
               <Icon name="person" size={80} color="#02BFDC" />
             </View>
-            <Text style={styles.characterName}>{aiNickname}</Text>
+            <ScaledText fontSize={20} style={styles.characterName}>{aiNickname}</ScaledText>
           </View>
 
-          <Text style={styles.description}>
+          <ScaledText fontSize={18} style={styles.description}>
             프롬프트를 고르면{'\n'}
             {aiNickname}의 목소리를 들을 수 있어요.
-          </Text>
+          </ScaledText>
 
           <View style={styles.promptList}>
             {promptTypes.map((type) => {
@@ -133,12 +134,12 @@ const PromptSettings = () => {
                   activeOpacity={0.7}
                 >
                   <View style={styles.promptItemContent}>
-                    <Text style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}>
+                    <ScaledText fontSize={18} style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}>
                       {config.label}
-                    </Text>
-                    <Text style={[styles.promptDescription, isSelected && styles.promptDescriptionSelected]}>
+                    </ScaledText>
+                    <ScaledText fontSize={14} style={[styles.promptDescription, isSelected && styles.promptDescriptionSelected]}>
                       {config.description}
-                    </Text>
+                    </ScaledText>
                   </View>
                   {isSelected && (
                     <Icon name="checkmark-circle" size={24} color="#02BFDC" />
@@ -158,32 +159,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#D9F2F5',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 56,
-    paddingHorizontal: 16,
-    backgroundColor: '#D9F2F5',
-    borderBottomWidth: 1,
-    borderBottomColor: '#B8E6EA',
-  },
-  backButton: {
-    padding: 8,
-    width: 80,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2D4550',
-  },
   saveButton: {
-    width: 80,
-    alignItems: 'flex-end',
-    paddingRight: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    minWidth: 50,
+    alignItems: 'center',
   },
   saveButtonText: {
-    fontSize: 16,
     color: '#02BFDC',
     fontWeight: '600',
   },
@@ -205,12 +187,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   characterName: {
-    fontSize: 20,
     fontWeight: '600',
     color: '#2D4550',
   },
   description: {
-    fontSize: 18,
     fontWeight: '500',
     color: '#2D4550',
     textAlign: 'center',
@@ -246,7 +226,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   promptLabel: {
-    fontSize: 18,
     fontWeight: '500',
     color: '#2D4550',
     marginBottom: 4,
@@ -256,7 +235,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   promptDescription: {
-    fontSize: 14,
     color: '#6C757D',
   },
   promptDescriptionSelected: {

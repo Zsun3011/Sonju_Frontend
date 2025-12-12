@@ -1,15 +1,13 @@
 // src/pages/HealthPage/HealthDiaryList.tsx
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
 import { healthStyles } from '../../styles/Health';
-
-const STORAGE_KEY = '@health_diary_entries';
+import { getHealthMemosForMonth } from '../../api/healthApi';
 
 interface DiaryEntry {
-  date: string;
+  date: string; // YYYY/MM/DD
   preview: string;
 }
 
@@ -20,6 +18,7 @@ export default function HealthDiaryList() {
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(today);
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
@@ -30,7 +29,7 @@ export default function HealthDiaryList() {
   const realMonth = realToday.getMonth() + 1;
 
   // 앱 시작 날짜 (예: 2025년 1월부터)
-  const firstRecordDate = new Date(2025, 0, 1); // 2025년 1월 1일
+  const firstRecordDate = new Date(2025, 0, 1);
   const firstRecordYear = firstRecordDate.getFullYear();
   const firstRecordMonth = firstRecordDate.getMonth() + 1;
 
@@ -47,43 +46,39 @@ export default function HealthDiaryList() {
 
   const loadEntries = async () => {
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const allEntries = JSON.parse(stored);
+      setIsLoading(true);
 
-        // 현재 월에 해당하는 일지만 필터링 (YYYY/MM 형식)
-        const monthKey = `${currentYear}/${String(currentMonth).padStart(2, '0')}`;
-        const filtered = Object.entries(allEntries)
-          .filter(([date]) => date.startsWith(monthKey))
-          .map(([date, content]) => ({
-            date,
-            preview: typeof content === 'string'
-              ? (content.length > 20 ? content.substring(0, 20) + '...' : content)
-              : '내용 없음'
-          }))
-          .sort((a, b) => b.date.localeCompare(a.date)); // 최신순 정렬
+      // API에서 해당 월의 일지 가져오기
+      const memos = await getHealthMemosForMonth(currentYear, currentMonth);
 
-        setEntries(filtered);
-      } else {
-        setEntries([]);
-      }
+      // 배열로 변환 및 정렬
+      const filtered = Object.entries(memos)
+        .map(([date, content]) => ({
+          date,
+          preview: typeof content === 'string'
+            ? (content.length > 20 ? content.substring(0, 20) + '...' : content)
+            : '내용 없음'
+        }))
+        .sort((a, b) => b.date.localeCompare(a.date)); // 최신순 정렬
+
+      setEntries(filtered);
     } catch (error) {
       console.error('일지 목록 불러오기 실패:', error);
       setEntries([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handlePrevMonth = () => {
     if (!canGoLeft) return;
-
-    const newDate = new Date(currentYear, currentMonth - 2, 1); // -2 because month is 1-indexed
+    const newDate = new Date(currentYear, currentMonth - 2, 1);
     setCurrentDate(newDate);
   };
 
   const handleNextMonth = () => {
     if (!canGoRight) return;
-
-    const newDate = new Date(currentYear, currentMonth, 1); // currentMonth because it's 1-indexed
+    const newDate = new Date(currentYear, currentMonth, 1);
     setCurrentDate(newDate);
   };
 
@@ -148,7 +143,14 @@ export default function HealthDiaryList() {
 
           {/* 일지 목록 */}
           <View style={healthStyles.entriesList}>
-            {entries.length > 0 ? (
+            {isLoading ? (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#02BFDC" />
+                <ScaledText fontSize={18} style={{ marginTop: 10, color: '#666' }}>
+                  일지를 불러오는 중...
+                </ScaledText>
+              </View>
+            ) : entries.length > 0 ? (
               entries.map((entry, index) => {
                 // 날짜 파싱 (YYYY/MM/DD)
                 const dateParts = entry.date.split('/');

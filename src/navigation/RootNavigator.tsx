@@ -17,7 +17,7 @@ import ChatListPage from '../pages/AiChatPage/ChatList';
 import DailyQuestPage from '../pages/DailyQuestPage/DailyQuestPage';
 import MissionChatPage from '../pages/DailyQuestPage/MissionChatPage';
 
-// Home Pages (추가)
+// Home Pages
 import SettingsPage from '../pages/HomePage/SettingsPage';
 import NotificationPage from '../pages/HomePage/NotificationPage';
 import HealthPage from '../pages/HealthPage/HealthPage';
@@ -30,7 +30,7 @@ import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm
 
 const Stack = createNativeStackNavigator();
 
-//디버깅용, true: 메인화면으로 바로 접속
+// 디버깅용, true: 메인화면으로 바로 접속
 const DEBUG_MODE = false;
 
 export default function RootNavigator() {
@@ -38,27 +38,43 @@ export default function RootNavigator() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    checkLoginStatus();
-  }, []);
+        checkLoginStatus();
 
-  const checkLoginStatus = async () => {
-    try {
-      if (DEBUG_MODE) {
-        setIsLoggedIn(true);
-        setIsLoading(false);
-        return;
+        // AsyncStorage 변경 감지를 위한 interval 설정
+        const interval = setInterval(() => {
+          checkLoginStatus();
+        }, 200); // 200ms마다 체크
+
+        return () => clearInterval(interval);
+      }, []); // 의존성 배열 비움
+
+
+    const checkLoginStatus = async () => {
+      try {
+        if (DEBUG_MODE) {
+          setIsLoggedIn(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // accessToken과 온보딩 완료 여부로 로그인 상태 판단
+        const token = await AsyncStorage.getItem('accessToken');
+        const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
+
+        const newLoginState = !!token && hasCompletedOnboarding === 'true';
+
+        // 항상 상태 업데이트 (React가 자동으로 동일한 값은 무시함)
+        setIsLoggedIn(newLoginState);
+
+        console.log(`🔍 [RootNavigator] 상태 체크 - 토큰: ${!!token}, 온보딩: ${hasCompletedOnboarding}, 로그인: ${newLoginState}`);
+      } catch (error) {
+        console.error('❌ [RootNavigator] 로그인 상태 확인 실패:', error);
+      } finally {
+        if (isLoading) {
+          setIsLoading(false);
+        }
       }
-
-      const token = await AsyncStorage.getItem('userToken');
-      const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
-
-      setIsLoggedIn(!!token && hasCompletedOnboarding === 'true');
-    } catch (error) {
-      console.error('로그인 상태 확인 실패:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
   if (isLoading) {
     return (

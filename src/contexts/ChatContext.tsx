@@ -56,6 +56,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteAllChats = () => {
+    setChats([]);
+    setCurrentChat(null);
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -80,3 +85,4 @@ export const useChat = () => {
   }
   return context;
 };
+

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -82,10 +82,14 @@ const ChatList = () => {
         activeOpacity={0.7}
       >
         <View style={ChatStyles.chatListContent}>
-          <Text style={ChatStyles.chatListTitle} numberOfLines={1}>
+          {/* 중간 글씨 20 */}
+          <ScaledText style={ChatStyles.chatListTitle} numberOfLines={1} fontSize={20}>
             {item.title}
-          </Text>
-          <Text style={ChatStyles.chatListDate}>{formatDate(item.date)}</Text>
+          </ScaledText>
+          {/* 작은 글씨 18 */}
+          <ScaledText style={ChatStyles.chatListDate} fontSize={18}>
+            {formatDate(item.date)}
+          </ScaledText>
         </View>
         {isSelectionMode && (
           <View style={[ChatStyles.checkbox, isSelected && ChatStyles.checkboxSelected]}>
@@ -99,51 +103,71 @@ const ChatList = () => {
   return (
     <SafeAreaView style={ChatStyles.container}>
       <View style={ChatStyles.container}>
-      {/* 헤더 */}
-      <View style={ChatStyles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={ChatStyles.headerButton}>
-          <Icon name="chevron-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={ChatStyles.headerTitle}>채팅 목록</Text>
-        {isSelectionMode ? (
-          <TouchableOpacity style={ChatStyles.headerButton} onPress={handleDelete}>
-            <Text style={ChatStyles.headerButtonPrimary}>삭제</Text>
+        {/* 헤더 */}
+        <View style={ChatStyles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={ChatStyles.headerButton}>
+            <Icon name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
+
+          {/* 큰 글씨 24 */}
+          <ScaledText style={ChatStyles.headerTitle} fontSize={24}>
+            채팅 목록
+          </ScaledText>
+
+          {isSelectionMode ? (
+            <TouchableOpacity style={ChatStyles.headerButton} onPress={handleDelete}>
+              {/* 중간 글씨 20 */}
+              <ScaledText style={ChatStyles.headerButtonPrimary} fontSize={20}>
+                삭제
+              </ScaledText>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={ChatStyles.headerButton} onPress={() => setIsSelectionMode(true)}>
+              {/* 중간 글씨 20 */}
+              <ScaledText style={ChatStyles.headerButtonPrimary} fontSize={20}>
+                선택
+              </ScaledText>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {chats.length === 0 ? (
+          <View style={ChatStyles.emptyContainer}>
+            <Icon name="chatbubbles-outline" size={64} color={colors.border} />
+            {/* 중간 글씨 20 */}
+            <ScaledText style={ChatStyles.emptyText} fontSize={20}>
+              채팅 내역이 없습니다
+            </ScaledText>
+            {/* 작은 글씨 18 */}
+            <ScaledText style={ChatStyles.emptySubtext} fontSize={18}>
+              손주와 새로운 대화를 시작해보세요
+            </ScaledText>
+          </View>
         ) : (
-          <TouchableOpacity style={ChatStyles.headerButton} onPress={() => setIsSelectionMode(true)}>
-            <Text style={ChatStyles.headerButtonPrimary}>선택</Text>
-          </TouchableOpacity>
+          <FlatList
+            data={chats}
+            renderItem={renderChatItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+          />
         )}
-      </View>
 
-      {chats.length === 0 ? (
-        <View style={ChatStyles.emptyContainer}>
-          <Icon name="chatbubbles-outline" size={64} color={colors.border} />
-          <Text style={ChatStyles.emptyText}>채팅 내역이 없습니다</Text>
-          <Text style={ChatStyles.emptySubtext}>손주와 새로운 대화를 시작해보세요</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={chats}
-          renderItem={renderChatItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
-
-      {isSelectionMode && (
-        <View style={styles.cancelButtonContainer}>
-          <TouchableOpacity
-            style={ChatStyles.secondaryButton}
-            onPress={() => {
-              setIsSelectionMode(false);
-              setSelectedItems([]);
-            }}
-          >
-            <Text style={ChatStyles.secondaryButtonText}>취소</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        {isSelectionMode && (
+          <View style={styles.cancelButtonContainer}>
+            <TouchableOpacity
+              style={ChatStyles.secondaryButton}
+              onPress={() => {
+                setIsSelectionMode(false);
+                setSelectedItems([]);
+              }}
+            >
+              {/* 중간 글씨 20 */}
+              <ScaledText style={ChatStyles.secondaryButtonText} fontSize={20}>
+                취소
+              </ScaledText>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

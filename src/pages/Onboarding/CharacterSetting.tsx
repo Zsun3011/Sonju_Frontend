@@ -11,73 +11,159 @@ import { aiProfileAPI } from '../../services/aiProfile';
 export default function CharacterSetting({ route, navigation }: any) {
   const { sonjuName } = route.params || { sonjuName: '손주' };
 
-  const [selectedPersonality, setSelectedPersonality] = useState<Personality>(Personality.FRIENDLY);
-  const [loading, setLoading] = useState(false);
+  const traitOptions = {
+    personality: ['다정한', '활발한', '경청하는', '유머러스한'],
+    speech: ['존댓말', '귀여운', '부드러운'],
+    emotions: ['적당히', '평일한', '농담조금'],
+    interests: ['뉴스', '요리', '운동', '취미추천'],
+  };
 
-  const personalityOptions: Array<{
-    value: Personality;
-    label: string;
-    description: string;
-  }> = [
-    {
-      value: Personality.FRIENDLY,
-      label: PersonalityLabels[Personality.FRIENDLY],
-      description: '따뜻하고 친근한 대화',
-    },
-    {
-      value: Personality.ACTIVE,
-      label: PersonalityLabels[Personality.ACTIVE],
-      description: '에너지 넘치는 대화',
-    },
-    {
-      value: Personality.PLEASANT,
-      label: PersonalityLabels[Personality.PLEASANT],
-      description: '유쾌하고 재미있는 대화',
-    },
-    {
-      value: Personality.RELIABLE,
-      label: PersonalityLabels[Personality.RELIABLE],
-      description: '믿음직한 대화',
-    },
-  ];
+  const [selectedTraits, setSelectedTraits] = useState<CharacterTraits>({
+    personality: traitOptions.personality[0],
+    speech: traitOptions.speech[0],
+    emotions: traitOptions.emotions[0],
+    interests: [],
+  });
+
+  const selectSingleTrait = (category: 'personality' | 'speech' | 'emotions', trait: string) => {
+    setSelectedTraits(prev => ({
+      ...prev,
+      [category]: trait,
+    }));
+  };
+
+  const toggleInterest = (interest: string) => {
+    setSelectedTraits(prev => {
+      const currentInterests = prev.interests;
+      if (currentInterests.includes(interest)) {
+        return {
+          ...prev,
+          interests: currentInterests.filter(i => i !== interest),
+        };
+      } else {
+        return {
+          ...prev,
+          interests: [...currentInterests, interest],
+        };
+      }
+    });
+  };
 
   const handleComplete = async () => {
     try {
-      setLoading(true);
+      const characterData = {
+        name: sonjuName,
+        personality: selectedTraits.personality,
+        speech: selectedTraits.speech,
+        emotions: selectedTraits.emotions,
+        interests: selectedTraits.interests,
+      };
 
-      // AI 프로필 생성
-      await aiProfileAPI.createAiProfile({
-        nickname: sonjuName,
-        personality: selectedPersonality,
-      });
+      console.log('전송할 데이터:', characterData);
 
-      console.log('✅ AI 프로필 생성 성공:', {
-        nickname: sonjuName,
-        personality: selectedPersonality,
-      });
+      // TODO: 백엔드 API 호출
+      // await api.createCharacter(characterData);
 
-      // 온보딩 완료 플래그 저장
+      // ✅ 온보딩 완료 플래그 저장
       await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+
+      // ✅ 임시 토큰 저장 (실제로는 로그인/회원가입 시 받은 토큰 사용)
+      await AsyncStorage.setItem('userToken', 'temp_token_123');
 
       Alert.alert(
         '완료',
-        `${sonjuName} 캐릭터가 생성되었습니다!`,
+        '손주 캐릭터가 생성되었습니다!',
         [
           {
             text: '확인',
             onPress: () => {
+              // ✅ RootNavigator가 자동으로 MainTabNavigator로 전환됨
+              // navigation.reset 대신 단순 navigate 사용
               navigation.navigate('Main');
-            },
-          },
+            }
+          }
         ]
       );
-    } catch (error: any) {
-      console.error('❌ 캐릭터 생성 오류:', error);
-      Alert.alert('오류', error.message || '캐릭터 생성에 실패했습니다.');
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('캐릭터 생성 오류:', error);
+      Alert.alert('오류', '캐릭터 생성에 실패했습니다.');
     }
   };
+
+  const renderSingleSelectSection = (
+    title: string,
+    category: 'personality' | 'speech' | 'emotions',
+    options: string[]
+  ) => (
+    <View style={styles.characterSection}>
+      <ScaledText fontSize={20} style={styles.sectionTitle}>
+        {title}
+      </ScaledText>
+      <View style={styles.optionsContainer}>
+        {options.map((option) => {
+          const isSelected = selectedTraits[category] === option;
+          return (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.optionButton,
+                isSelected && styles.optionButtonSelected,
+              ]}
+              onPress={() => selectSingleTrait(category, option)}
+            >
+              <ScaledText
+                fontSize={16}
+                style={[
+                  styles.optionText,
+                  isSelected && styles.optionTextSelected,
+                ]}
+              >
+                {option}
+              </ScaledText>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={styles.divider} />
+    </View>
+  );
+
+  const renderMultiSelectSection = (
+    title: string,
+    options: string[]
+  ) => (
+    <View style={styles.characterSection}>
+      <ScaledText fontSize={20} style={styles.sectionTitle}>
+        {title}
+      </ScaledText>
+      <View style={styles.optionsContainer}>
+        {options.map((option) => {
+          const isSelected = selectedTraits.interests.includes(option);
+          return (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.optionButton,
+                isSelected && styles.optionButtonSelected,
+              ]}
+              onPress={() => toggleInterest(option)}
+            >
+              <ScaledText
+                fontSize={16}
+                style={[
+                  styles.optionText,
+                  isSelected && styles.optionTextSelected,
+                ]}
+              >
+                {option}
+              </ScaledText>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={styles.divider} />
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -93,49 +179,12 @@ export default function CharacterSetting({ route, navigation }: any) {
           />
         </View>
 
-        {/* 성격 선택 */}
-        <View style={styles.characterSection}>
-          <ScaledText fontSize={20} style={styles.sectionTitle}>
-            성격
-          </ScaledText>
-          <View style={styles.optionsContainer}>
-            {personalityOptions.map((option) => {
-              const isSelected = selectedPersonality === option.value;
-              return (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.optionButton,
-                    isSelected && styles.optionButtonSelected,
-                  ]}
-                  onPress={() => setSelectedPersonality(option.value)}
-                >
-                  <ScaledText
-                    fontSize={16}
-                    style={[
-                      styles.optionText,
-                      isSelected && styles.optionTextSelected,
-                    ]}
-                  >
-                    {option.label}
-                  </ScaledText>
-                  <ScaledText
-                    fontSize={12}
-                    style={[
-                      styles.optionDescription,
-                      isSelected && styles.optionDescriptionSelected,
-                    ]}
-                  >
-                    {option.description}
-                  </ScaledText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        {renderSingleSelectSection('성격', 'personality', traitOptions.personality)}
+        {renderSingleSelectSection('말투', 'speech', traitOptions.speech)}
+        {renderSingleSelectSection('감정표현', 'emotions', traitOptions.emotions)}
+        {renderMultiSelectSection('관심사', traitOptions.interests)}
 
-        {/* 완료 버튼 */}
-        <View style={{ paddingHorizontal: 20, marginTop: 40 }}>
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <TouchableOpacity
             style={[
               onboardingStyles.button,
@@ -144,13 +193,9 @@ export default function CharacterSetting({ route, navigation }: any) {
             onPress={handleComplete}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <ScaledText fontSize={18} style={onboardingStyles.buttonText}>
-                완료
-              </ScaledText>
-            )}
+            <ScaledText fontSize={18} style={onboardingStyles.buttonText}>
+              완료
+            </ScaledText>
           </TouchableOpacity>
         </View>
       </ScrollView>

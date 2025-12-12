@@ -63,7 +63,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
     borderTopWidth: 1,
     borderTopColor: '#B8E6EA',
     paddingVertical: 12,

@@ -95,7 +95,7 @@ const ChatRoom = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
   },
   messagesContainer: {
     flex: 1,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#B8E6EA',
+    backgroundColor: '#A5BCC3',
   },
   loadingContainer: {
     paddingHorizontal: 16,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -10,6 +10,7 @@ import { useMission } from '../../contexts/MissionContext';
 import { Mission } from '../../types/mission';
 import { MissionStyles } from '../../styles/MissionStyles';
 import { colors } from '../../styles/colors';
+import ScaledText from '../../components/ScaledText';
 
 type DailyQuestNavigationProp = NativeStackNavigationProp<any>;
 
@@ -43,18 +44,15 @@ const DailyQuestPage = () => {
   return (
     <SafeAreaView style={MissionStyles.container}>
       <View style={MissionStyles.container}>
-      {/* Header */}
-      <View style={MissionStyles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={MissionStyles.backButton}
-          activeOpacity={0.7}
-        >
-          <Icon name="chevron-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={MissionStyles.headerTitle}>오늘의 미션</Text>
-        <View style={MissionStyles.headerSpacer} />
-      </View>
+        {/* Header */}
+        <View style={MissionStyles.header}>
+          {/* 큰 글씨 24 */}
+          <ScaledText style={MissionStyles.headerTitle} fontSize={24}>
+            오늘의 미션
+          </ScaledText>
+
+          <View style={MissionStyles.headerSpacer} />
+        </View>
 
       {/* Content */}
       <ScrollView
@@ -94,29 +92,29 @@ const DailyQuestPage = () => {
 
         {/* 미션 목록 */}
         {!loading && !error && (
-          <View style={MissionStyles.missionList}>
-            {missions.length > 0 ? (
+            <View style={MissionStyles.missionList}>
+              {missions.length > 0 ? (
               missions.map((mission) => (
-                <MissionCard key={mission.id} mission={mission} onStart={handleMissionStart} />
-              ))
+                  <MissionCard key={mission.id} mission={mission} onStart={handleMissionStart} />
+                ))
             ) : (
               <View style={MissionStyles.centerContainer}>
                 <Icon name="checkmark-circle-outline" size={48} color={colors.primary} />
                 <Text style={MissionStyles.emptyText}>오늘의 미션이 없습니다</Text>
               </View>
             )}
-          </View>
+            </View>
         )}
-      </ScrollView>
+        </ScrollView>
 
-      {/* Modal */}
-      <MissionModal
-        mission={selectedMission}
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onStartChat={handleStartChat}
-      />
-    </View>
+        {/* Modal */}
+        <MissionModal
+          mission={selectedMission}
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onStartChat={handleStartChat}
+        />
+      </View>
     </SafeAreaView>
   );
 };

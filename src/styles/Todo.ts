@@ -1,5 +1,8 @@
 import { StyleSheet } from 'react-native';
 
+export const ITEM_HEIGHT = 50;
+export const VISIBLE_ITEMS = 5;
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -9,35 +12,41 @@ export const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Medium',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: 40,
+    paddingTop: 60,
     gap: 12,
-  },
-  backButton: {
-    padding: 4,
   },
   title: {
     fontFamily: 'Pretendard-Medium',
     fontWeight: '600',
     color: '#000',
   },
-    subtitle: {
-    color: '#666',
-    paddingHorizontal: 60,
+  subtitle: {
+    fontFamily: 'Pretendard-Medium',
+    color: '#000',
+    paddingHorizontal: 40,
     marginTop: 4,
     marginBottom: 20,
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
+    marginBottom: 20
   },
-  todoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+  section: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    color: '#999',
     marginBottom: 12,
+  },
+  todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -48,45 +57,56 @@ export const styles = StyleSheet.create({
   checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 6,
+    borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#02BFDC',
+    borderColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  checkboxCompleted: {
     backgroundColor: '#02BFDC',
+    borderColor: '#02BFDC',
+  },
+  checkmark: {
+    color: '#fff',
   },
   todoContent: {
     flex: 1,
   },
   todoTitle: {
-    fontSize: 16,
     color: '#000',
+    marginBottom: 4,
   },
   todoTitleCompleted: {
-    textDecorationLine: 'line-through',
     color: '#999',
+    textDecorationLine: 'line-through',
   },
-  todoTime: {
-    fontSize: 14,
-    color: '#666',
-  },
-  iconButton: {
-    padding: 4,
+  todoDate: {
+    color: '#999',
   },
   emptyState: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
     color: '#999',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
   },
   fabContainer: {
     position: 'absolute',
     bottom: 32,
     right: 32,
     alignItems: 'flex-end',
-    gap: 12,
+    gap: 2,
+    marginBottom: 130,
   },
   secondaryFab: {
     marginBottom: 8,
@@ -96,7 +116,7 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 1,
   },
   mainFabButton: {
     width: 64,
@@ -108,110 +128,172 @@ export const styles = StyleSheet.create({
   },
   secondaryFabButton: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 28,
+    paddingHorizontal: 40,
+    maxWidth: 190,
+    paddingVertical: 30,
+    borderRadius: 30,
     backgroundColor: '#02BFDC',
     alignItems: 'center',
     gap: 8,
   },
   fabButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: '500',
+  },
+  plusIcon: {
+    width: 32,
+    height: 32,
+    tintColor: '#FFF',
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+    minHeight: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  modalCloseButton: {
+    color: '#000',
+    width: 40,
   },
   modalTitle: {
-    fontSize: 20,
+    color: '#000',
     fontWeight: '600',
-    marginBottom: 24,
-    color: '#000',
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#000',
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
-  listeningText: {
-    fontSize: 14,
+  modalSaveButton: {
     color: '#02BFDC',
-    marginTop: 8,
+    fontWeight: '600',
+    width: 40,
+    textAlign: 'right',
   },
-  timePickerRow: {
+  inputSection: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  titleInput: {
+    padding: 0,
+    color: '#000',
+  },
+  settingSection: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  picker: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
+  settingLabel: {
+    color: '#000',
+  },
+  settingValue: {
+    color: '#999',
+  },
+  deleteButton: {
+    marginTop: 20,
+    marginHorizontal: 20,
+    padding: 16,
+    backgroundColor: '#FFF0F0',
     borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#FF3B30',
+    fontWeight: '600',
+  },
+  pickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerContainer: {
     backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '85%',
+    maxWidth: 400,
+    overflow: 'hidden',
   },
-  pickerButton: {
-    padding: 12,
-    alignItems: 'center',
-  },
-  pickerText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  pickerInput: {
-    padding: 12,
-    fontSize: 16,
-    color: '#000',
-    textAlign: 'center',
-  },
-  modalButtons: {
+  pickerHeader: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  modalButton: {
+  pickerCancelButton: {
+    color: '#999',
+  },
+  pickerTitle: {
+    color: '#000',
+    fontWeight: '600',
+  },
+  pickerDoneButton: {
+    color: '#02BFDC',
+    fontWeight: '600',
+  },
+  pickerContent: {
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+  },
+  pickerColumns: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  pickerColumn: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
+    alignItems: 'center',
+    height: ITEM_HEIGHT * VISIBLE_ITEMS,
+    overflow: 'hidden',
+  },
+  pickerScrollContent: {
+    paddingVertical: (ITEM_HEIGHT * (VISIBLE_ITEMS - 1)) / 2,
+  },
+  pickerItem: {
+    height: ITEM_HEIGHT,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  cancelButton: {
-    backgroundColor: '#f0f0f0',
+  pickerItemText: {
+    color: '#999',
   },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
+  pickerItemTextSelected: {
+    color: '#000',
+    fontWeight: '600',
+  },
+  pickerUnit: {
+    marginTop: 4,
+    marginBottom: 8,
     color: '#666',
   },
-  addButton: {
-    backgroundColor: '#02BFDC',
+  pickerSelectionIndicator: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    top: '57%',
+    height: ITEM_HEIGHT,
+    marginTop: -ITEM_HEIGHT / 2,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E0E0E0',
+    pointerEvents: 'none',
   },
-  addButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
+  dateTimePicker: {
+    height: 200,
   },
 });

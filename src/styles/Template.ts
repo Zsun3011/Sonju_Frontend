@@ -16,8 +16,29 @@ export const onboardingStyles = StyleSheet.create({
     paddingVertical: 20,  // 200 → 20으로 변경
     paddingHorizontal: 20,
     position: 'absolute',  // 추가
-    bottom: 100,     
+    bottom: 100,
   },
+
+  container3: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 20,  // 200 → 20으로 변경
+      paddingHorizontal: 20,
+      position: 'absolute',  // 추가
+      bottom: 270,
+    },
+
+    signUpButton: {
+      backgroundColor: '#ffffff',   // 회원가입 버튼 배경
+      borderWidth: 1,
+      borderColor: '#02BFDC',
+    },
+
+    signUpButtonText: {
+      color: '#02BFDC',             // 회원가입 텍스트 색
+      fontWeight: '600',
+    },
 
   title: {
     fontFamily: 'Pretendard-Bold',

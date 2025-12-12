@@ -11,9 +11,9 @@ export const MissionStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#D9F2F5',
+    height: 56,
+    paddingHorizontal: 30,
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: '#E9ECEF',
   },
@@ -24,6 +24,7 @@ export const MissionStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
+    fontFamily: 'Pretendard-Medium',
     color: colors.text,
   },
   headerSpacer: {
@@ -39,21 +40,102 @@ export const MissionStyles = StyleSheet.create({
     fontSize: 14,
     color: '#6C757D',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    right: 20
   },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+
+  // ========== 미션 리스트 ==========
+  missionList: {
+    gap: 16,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+    marginBottom: 150
+  },
+
+  // ========== 미션 카드 스타일 ==========
+  missionCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  statItem: {
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 1,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+    fontFamily: 'Pretendard-Medium',
+
+  },
+  tagContainer: {
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  tag: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  pointsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  points: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  pointsLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  coinIcon: {
+    fontSize: 20,
+  },
+
+  // ========== 미션 버튼 ==========
+  missionButton: {
+    backgroundColor: colors.primary,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  missionButtonCompleted: {
+    backgroundColor: colors.secondary,
+  },
+  missionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
+  },
+  missionButtonTextCompleted: {
+    color: colors.textSecondary,
+  },
+
+  // ========== 모달 스타일 ==========
+  modalOverlay: {
     flex: 1,
     alignItems: 'center',
   },

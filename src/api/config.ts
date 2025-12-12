@@ -1,70 +1,68 @@
 // src/api/config.ts
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-// API 기본 URL
-export const API_BASE_URL = 'http://coopteam7-beanstalk-env.eba-xevuqgji.ap-northeast-2.elasticbeanstalk.com';
+// API 기본 URL (끝에 슬래시 제거!)
+export const API_BASE_URL =
+  'http://coopteam7-beanstalk-env.eba-xevuqgji.ap-northeast-2.elasticbeanstalk.com';
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10초
+  timeout: 15000, // 15초로 증가
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// ⭐ 요청 인터셉터 - 토큰 추가
+// 요청 인터셉터 (디버깅용 상세 로그)
 apiClient.interceptors.request.use(
-  async (config) => {
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      
-      console.log('📤 API 요청:', {
-        url: `${config.baseURL}${config.url}`,
-        method: config.method?.toUpperCase(),
-        token: token ? `있음 (${token.substring(0, 20)}...)` : '없음',
-      });
-      
-      return config;
-    } catch (error) {
-      console.error('❌ Request Interceptor Error:', error);
-      return config;
-    }
+  (config) => {
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log('📤 API 요청:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      fullUrl: fullUrl,
+      params: config.params,
+      data: config.data,
+    });
+    return config;
   },
   (error) => {
+    console.error('📤 요청 인터셉터 에러:', error);
     return Promise.reject(error);
   }
 );
 
-// 응답 인터셉터 - 에러 처리
+// 응답 인터셉터 (상세 에러 처리)
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('📥 API 응답:', {
-      status: response.status,
+    console.log('📥 API 응답 성공:', {
       url: response.config.url,
+      status: response.status,
+      data: typeof response.data === 'string' 
+        ? response.data.substring(0, 100) 
+        : response.data,
     });
     return response;
   },
-  async (error) => {
-    console.error('❌ API 에러:', {
-      status: error.response?.status,
-      url: error.config?.url,
-      data: error.response?.data,
-      message: error.message,
-    });
-
-    // 401 에러 시 토큰 삭제
-    if (error.response?.status === 401) {
-      console.log('🔒 401 인증 실패 - 토큰 삭제');
-      await AsyncStorage.removeItem('userToken');
+  (error) => {
+    if (error.response) {
+      // 서버가 응답을 반환했지만 2xx 범위를 벗어남
+      console.error('📥 API 응답 에러:', {
+        url: error.config?.url,
+        status: error.response.status,
+        data: error.response.data,
+      });
+    } else if (error.request) {
+      // 요청이 전송되었지만 응답을 받지 못함
+      console.error('📥 API 네트워크 에러 (응답 없음):', {
+        url: error.config?.url,
+        message: error.message,
+      });
+    } else {
+      // 요청 설정 중 에러 발생
+      console.error('📥 API 설정 에러:', error.message);
     }
-
     return Promise.reject(error);
   }
 );

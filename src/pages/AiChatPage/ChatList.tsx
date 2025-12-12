@@ -177,25 +177,15 @@ const ChatList = () => {
         activeOpacity={0.7}
         disabled={isLoading}
       >
-        <View style={styles.chatIconContainer}>
-          <Icon name="chatbubble-ellipses" size={24} color="#02BFDC" />
-        </View>
-
-        <View style={styles.chatContent}>
-          <View style={styles.chatHeader}>
-            <ScaledText fontSize={16} style={styles.chatTitle} numberOfLines={1}>
-              {getTitle(item)}
-            </ScaledText>
-            <ScaledText fontSize={12} style={styles.chatDate}>
-              {formatDate(item.last_date)}
-            </ScaledText>
-          </View>
-          
-          {item.last_message && (
-            <ScaledText fontSize={14} style={styles.chatMessage} numberOfLines={1}>
-              {item.last_message}
-            </ScaledText>
-          )}
+        <View style={ChatStyles.chatListContent}>
+          {/* 중간 글씨 20 */}
+          <ScaledText style={ChatStyles.chatListTitle} numberOfLines={1} fontSize={20}>
+            {item.title}
+          </ScaledText>
+          {/* 작은 글씨 18 */}
+          <ScaledText style={ChatStyles.chatListDate} fontSize={18}>
+            {formatDate(item.date)}
+          </ScaledText>
         </View>
 
         {isSelectionMode && (
@@ -208,76 +198,74 @@ const ChatList = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <PageHeader
-        title="채팅 목록"
-        onBack={() => navigation.goBack()}
-        safeArea={true}
-        rightButton={
-          isSelectionMode ? (
-            <TouchableOpacity 
-              style={styles.headerButton} 
-              onPress={handleDelete}
-              disabled={isLoading}
-            >
-              <ScaledText fontSize={16} style={styles.deleteButtonText}>삭제</ScaledText>
+    <SafeAreaView style={ChatStyles.container}>
+      <View style={ChatStyles.container}>
+        {/* 헤더 */}
+        <View style={ChatStyles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={ChatStyles.headerButton}>
+            <Icon name="chevron-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+
+          {/* 큰 글씨 24 */}
+          <ScaledText style={ChatStyles.headerTitle} fontSize={24}>
+            채팅 목록
+          </ScaledText>
+
+          {isSelectionMode ? (
+            <TouchableOpacity style={ChatStyles.headerButton} onPress={handleDelete}>
+              {/* 중간 글씨 20 */}
+              <ScaledText style={ChatStyles.headerButtonPrimary} fontSize={20}>
+                삭제
+              </ScaledText>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity 
-              style={styles.headerButton} 
-              onPress={() => setIsSelectionMode(true)}
-            >
-              <ScaledText fontSize={16} style={styles.selectButtonText}>선택</ScaledText>
+            <TouchableOpacity style={ChatStyles.headerButton} onPress={() => setIsSelectionMode(true)}>
+              {/* 중간 글씨 20 */}
+              <ScaledText style={ChatStyles.headerButtonPrimary} fontSize={20}>
+                선택
+              </ScaledText>
             </TouchableOpacity>
-          )
-        }
-      />
-
-      {isLoading && chatLists.length === 0 ? (
-        <View style={styles.loadingContainer}>
-          <ScaledText fontSize={16} style={styles.loadingText}>
-            채팅방을 불러오는 중...
-          </ScaledText>
+          )}
         </View>
-      ) : chatLists.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Icon name="chatbubbles-outline" size={64} color="#B8E6EA" />
-          <ScaledText fontSize={18} style={styles.emptyTitle}>
-            채팅 내역이 없습니다
-          </ScaledText>
-          <ScaledText fontSize={14} style={styles.emptySubtitle}>
-            손주와 새로운 대화를 시작해보세요
-          </ScaledText>
-          <TouchableOpacity style={styles.startChatButton} onPress={handleNewChat}>
-            <ScaledText fontSize={16} style={styles.startChatText}>
-              대화 시작하기
+
+        {chats.length === 0 ? (
+          <View style={ChatStyles.emptyContainer}>
+            <Icon name="chatbubbles-outline" size={64} color={colors.border} />
+            {/* 중간 글씨 20 */}
+            <ScaledText style={ChatStyles.emptyText} fontSize={20}>
+              채팅 내역이 없습니다
             </ScaledText>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={chatLists}
-          renderItem={renderChatItem}
-          keyExtractor={(item) => item.chat_list_num.toString()}
-          contentContainerStyle={styles.listContent}
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-        />
-      )}
+            {/* 작은 글씨 18 */}
+            <ScaledText style={ChatStyles.emptySubtext} fontSize={18}>
+              손주와 새로운 대화를 시작해보세요
+            </ScaledText>
+          </View>
+        ) : (
+          <FlatList
+            data={chats}
+            renderItem={renderChatItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
 
-      {isSelectionMode && (
-        <View style={styles.cancelButtonContainer}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => {
-              setIsSelectionMode(false);
-              setSelectedItems([]);
-            }}
-          >
-            <ScaledText fontSize={16} style={styles.cancelButtonText}>취소</ScaledText>
-          </TouchableOpacity>
-        </View>
-      )}
+        {isSelectionMode && (
+          <View style={styles.cancelButtonContainer}>
+            <TouchableOpacity
+              style={ChatStyles.secondaryButton}
+              onPress={() => {
+                setIsSelectionMode(false);
+                setSelectedItems([]);
+              }}
+            >
+              {/* 중간 글씨 20 */}
+              <ScaledText style={ChatStyles.secondaryButtonText} fontSize={20}>
+                취소
+              </ScaledText>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 };

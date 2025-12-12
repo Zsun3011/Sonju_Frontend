@@ -1,10 +1,10 @@
 // src/screens/PromptSettings.tsx
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
+import { 
+  View,  
+  TouchableOpacity, 
+  StyleSheet, 
   ScrollView,
   Alert,
   ActivityIndicator
@@ -19,6 +19,7 @@ import { Personality } from '../../types/ai';
 import { promptConfigs } from '../../utils/promptHelper';
 import { ChatStackParamList } from '../../types/navigation';
 import { aiProfileAPI } from '../../services/aiProfile';
+import ScaledText from '../../components/ScaledText';
 
 type PromptSettingsNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'PromptSettings'>;
 
@@ -88,24 +89,23 @@ const handleSave = async () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         {/* 헤더 */}
-        <PageHeader
-          title="프롬프트 설정"
-          onBack={() => navigation.goBack()}
-          safeArea={true}
-          rightButton={
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleSave}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#02BFDC" />
-              ) : (
-                <ScaledText fontSize={16} style={styles.saveButtonText}>저장</ScaledText>
-              )}
-            </TouchableOpacity>
-          }
-        />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="chevron-back" size={24} color="#333" />
+          </TouchableOpacity>
+
+          {/* 큰 글씨 24 */}
+          <ScaledText style={styles.headerTitle} fontSize={24}>
+            프롬프트 설정
+          </ScaledText>
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            {/* 중간 글씨 20 */}
+            <ScaledText style={styles.saveButtonText} fontSize={20}>
+              저장
+            </ScaledText>
+          </TouchableOpacity>
+        </View>
 
         <ScrollView style={styles.content}>
           {/* 캐릭터 이미지 */}
@@ -126,18 +126,22 @@ const handleSave = async () => {
               const config = promptConfigs[type];
               const isSelected = selectedPrompt === type;
 
-              return (
-                <TouchableOpacity
-                  key={type}
-                  style={[styles.promptItem, isSelected && styles.promptItemSelected]}
-                  onPress={() => handleSelectPrompt(type)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.promptItemContent}>
-                    <ScaledText fontSize={18} style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}>
-                      {config.label}
-                    </ScaledText>
-                    <ScaledText fontSize={14} style={[styles.promptDescription, isSelected && styles.promptDescriptionSelected]}>
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    style={[styles.promptItem, isSelected && styles.promptItemSelected]}
+                    onPress={() => handleSelectPrompt(type)}
+                    activeOpacity={0.7}
+                  >
+                  {/* 작은 글씨 18 */}
+                    <View style={styles.promptItemContent}>
+                    <ScaledText
+                    style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}
+                    fontSize={18}
+                  >
+                        {config.label}
+                      </ScaledText>
+                      <Text style={[styles.promptDescription, isSelected && styles.promptDescriptionSelected]}>
                       {config.description}
                     </ScaledText>
                   </View>
@@ -145,11 +149,11 @@ const handleSave = async () => {
                     <Icon name="checkmark-circle" size={24} color="#02BFDC" />
                   )}
                 </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </View>
     </SafeAreaView>
   );
 };
@@ -157,15 +161,36 @@ const handleSave = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
   },
   saveButton: {
     paddingHorizontal: 8,
     paddingVertical: 8,
     minWidth: 50,
     alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    paddingHorizontal: 16,
+    backgroundColor: '#B8E9F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#B8E6EA',
+  },
+  backButton: {
+    padding: 8,
+    width: 80,
+  },
+  headerTitle: {
+    fontSize: 18, // ScaledText가 24 기준으로 스케일 적용
+    fontWeight: '600',
+    color: '#2D4550',
+  },
+  saveButton: {
+    width: 80,
+    alignItems: 'flex-end',
+    paddingRight: 8,
   },
   saveButtonText: {
+    fontSize: 16, // ScaledText가 20 기준으로 스케일 적용
     color: '#02BFDC',
     fontWeight: '600',
   },
@@ -178,19 +203,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   characterPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#E8F7FA',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  characterName: {
-    fontWeight: '600',
-    color: '#2D4550',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: '#A5BCC3',
   },
   description: {
+    fontSize: 18, // ScaledText가 20 기준으로 스케일 적용
     fontWeight: '500',
     color: '#2D4550',
     textAlign: 'center',
@@ -226,6 +245,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   promptLabel: {
+    fontSize: 18, // ScaledText가 18 기준으로 스케일 적용(작게)
     fontWeight: '500',
     color: '#2D4550',
     marginBottom: 4,

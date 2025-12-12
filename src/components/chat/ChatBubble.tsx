@@ -25,29 +25,33 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 }) => {
   const isUser = message.role === 'user';
 
+  if (isUser) {
+    return (
+      <View style={styles.userContainer}>
+        <View style={styles.userBubble}>
+          {/* 본문: 중간 20 */}
+          <ScaledText style={styles.userText} fontSize={20}>
+            {message.content}
+          </ScaledText>
+        </View>
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.container, isUser ? styles.userContainer : styles.assistantContainer]}>
-      <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
-        <ScaledText fontSize={16} style={[styles.text, isUser ? styles.userText : styles.assistantText]}>
+    <View style={styles.assistantContainer}>
+      {/* TODO: 캐릭터 아바타 이미지 에셋 추가
+      <Image
+        source={require('../../assets/character-excited.png')}
+        style={styles.avatar}
+      />
+      */}
+      <View style={styles.avatarPlaceholder} />
+      <View style={styles.assistantBubble}>
+        {/* 본문: 중간 20 */}
+        <ScaledText style={styles.assistantText} fontSize={20}>
           {message.content}
         </ScaledText>
-        
-        {/* Todo 제안 표시 (AI 메시지에만) */}
-        {!isUser && showTodoSuggestion && todoTask && (
-          <View style={styles.todoSuggestion}>
-            <View style={styles.todoHeader}>
-              <ScaledText fontSize={14} style={styles.todoLabel}>할일로 등록할까요?</ScaledText>
-            </View>
-            <ScaledText fontSize={16} style={styles.todoTask}>{todoTask}</ScaledText>
-            {(todoDate || todoTime) && (
-              <ScaledText fontSize={14} style={styles.todoDateTime}>
-                {todoDate && todoDate}
-                {todoDate && todoTime && ' '}
-                {todoTime && todoTime}
-              </ScaledText>
-            )}
-          </View>
-        )}
       </View>
       
       {/* 타임스탬프 */}
@@ -63,8 +67,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 16,
   },
-  userContainer: {
-    alignItems: 'flex-end',
+  userBubble: {
+    backgroundColor: '#02BFDC',
+    borderRadius: 20,
+    borderTopRightRadius: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    maxWidth: '75%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  userText: {
+    fontSize: 20, // ScaledText가 20을 기준으로 스케일 적용
+    lineHeight: 28,
+    color: '#FFFFFF',
   },
   assistantContainer: {
     alignItems: 'flex-start',
@@ -75,9 +94,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-  userBubble: {
-    backgroundColor: '#02BFDC',
-    borderBottomRightRadius: 4,
+  avatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#A5BCC3',
   },
   assistantBubble: {
     backgroundColor: '#FFFFFF',
@@ -88,13 +109,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  text: {
-    lineHeight: 24,
-  },
-  userText: {
-    color: '#FFFFFF',
-  },
   assistantText: {
+    fontSize: 20, // ScaledText가 20을 기준으로 스케일 적용
+    lineHeight: 28,
     color: '#2D4550',
   },
   todoSuggestion: {

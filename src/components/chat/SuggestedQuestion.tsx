@@ -14,7 +14,10 @@ const SuggestedQuestion: React.FC<SuggestedQuestionProps> = ({ question, onClick
       onPress={() => onClick(question)}
       activeOpacity={0.7}
     >
-      <ScaledText fontSize={16} style={styles.text}>{question}</ScaledText>
+      {/* 라벨: 중간 20 */}
+      <ScaledText style={styles.text} fontSize={20}>
+        {question}
+      </ScaledText>
     </TouchableOpacity>
   );
 };
@@ -32,6 +35,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   text: {
+    fontSize: 20, // ScaledText가 20 기준으로 스케일 적용
     color: '#2D4550',
     textAlign: 'left',
   },

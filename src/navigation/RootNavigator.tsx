@@ -20,7 +20,7 @@ import MissionChatPage from '../pages/DailyQuestPage/MissionChatPage';
 // Shop Pages
 import ItemShopPage from '../pages/ItemShopPage/ItemShopPage';
 
-// Home Pages (추가)
+// Home Pages
 import SettingsPage from '../pages/HomePage/SettingsPage';
 import NotificationPage from '../pages/HomePage/NotificationPage';
 import HealthPage from '../pages/HealthPage/HealthPage';
@@ -33,7 +33,7 @@ import MedicationResultConfirm from '../pages/HealthPage/MedicationResultConfirm
 
 const Stack = createNativeStackNavigator();
 
-//디버깅용, true: 메인화면으로 바로 접속
+// 디버깅용, true: 메인화면으로 바로 접속
 const DEBUG_MODE = false;
 
 export default function RootNavigator() {
@@ -41,64 +41,43 @@ export default function RootNavigator() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    checkLoginStatus();
-    
-    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-    
-    // ⭐ 로그인 성공 이벤트 리스너 추가
-    const loginSuccessListener = DeviceEventEmitter.addListener(
-      'LOGIN_SUCCESS',
-      () => {
-        console.log('🎉 로그인 성공 이벤트 수신 - 상태 재확인');
         checkLoginStatus();
-      }
-    );
-    
-    return () => {
-      appStateSubscription?.remove();
-      loginSuccessListener.remove(); // ⭐ 정리
-    };
-  }, []);
 
-  const handleAppStateChange = (nextAppState: AppStateStatus) => {
-    if (nextAppState === 'active') {
-      console.log('📱 앱이 활성화됨 - 로그인 상태 재확인');
-      checkLoginStatus();
-    }
-  };
+        // AsyncStorage 변경 감지를 위한 interval 설정
+        const interval = setInterval(() => {
+          checkLoginStatus();
+        }, 200); // 200ms마다 체크
 
-  const checkLoginStatus = async () => {
-    try {
-      if (DEBUG_MODE) {
-        setIsLoggedIn(true);
-        setIsLoading(false);
-        return;
-      }
+        return () => clearInterval(interval);
+      }, []); // 의존성 배열 비움
 
-      const token = await AsyncStorage.getItem('userToken');
-      const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
 
-      console.log('🔍 로그인 상태 확인:', { 
-        hasToken: !!token, 
-        hasCompletedOnboarding 
-      });
+    const checkLoginStatus = async () => {
+      try {
+        if (DEBUG_MODE) {
+          setIsLoggedIn(true);
+          setIsLoading(false);
+          return;
+        }
 
-      const newLoginState = !!token && hasCompletedOnboarding === 'true';
+        // accessToken과 온보딩 완료 여부로 로그인 상태 판단
+        const token = await AsyncStorage.getItem('accessToken');
+        const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
 
-      if (newLoginState !== isLoggedIn) {
-        console.log('✅ 로그인 상태 변경:', isLoggedIn, '→', newLoginState);
+        const newLoginState = !!token && hasCompletedOnboarding === 'true';
+
+        // 항상 상태 업데이트 (React가 자동으로 동일한 값은 무시함)
         setIsLoggedIn(newLoginState);
-      }
-    } catch (error) {
-      console.error('❌ 로그인 상태 확인 실패:', error);
-      setIsLoggedIn(false);
-    } finally {
-      if (isLoading) {
-        setIsLoading(false);
-      }
-    }
-  };
 
+        console.log(`🔍 [RootNavigator] 상태 체크 - 토큰: ${!!token}, 온보딩: ${hasCompletedOnboarding}, 로그인: ${newLoginState}`);
+      } catch (error) {
+        console.error('❌ [RootNavigator] 로그인 상태 확인 실패:', error);
+      } finally {
+        if (isLoading) {
+          setIsLoading(false);
+        }
+      }
+    };
 
   if (isLoading) {
     return (

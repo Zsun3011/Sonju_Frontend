@@ -4,8 +4,10 @@ import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
+import PageHeader from '../../components/common/PageHeader';
 import { healthStyles } from '../../styles/Health';
 import { getHealthMemosForMonth } from '../../api/healthApi';
+import { getCurrentBackgrounds } from '../../utils/backgroundConfig';
 
 const STORAGE_KEY = '@health_diary_entries';
 const STATUS_STORAGE_KEY = '@health_diary_status';
@@ -23,6 +25,15 @@ export default function HealthPage() {
   const [reminderTimeText, setReminderTimeText] = useState<string>('—');
   const [reminderDescription, setReminderDescription] = useState<string>('오늘 복약 알림이 없습니다.');
 
+  // ✅ 배경 시스템 상태
+  const [backgrounds, setBackgrounds] = useState<{
+    bg1: any;
+    bg2: any | null;
+  }>({
+    bg1: require('../../../assets/images/배경.png'),
+    bg2: require('../../../assets/images/배경2.png'),
+  });
+
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
@@ -31,10 +42,23 @@ export default function HealthPage() {
 
   useFocusEffect(
     React.useCallback(() => {
+      loadBackground();
       loadDiaryEntries();
       loadMedicationReminder();
     }, [currentYear, currentMonth])
   );
+
+  // ✅ 배경 로드 함수
+  const loadBackground = async () => {
+    try {
+      const equippedBg = await AsyncStorage.getItem('equippedBackground');
+      const bgs = getCurrentBackgrounds(equippedBg, 'health');
+      setBackgrounds(bgs);
+      console.log('✅ 건강 배경 로드:', equippedBg || '기본 배경');
+    } catch (error) {
+      console.error('배경 로드 실패:', error);
+    }
+  };
 
   const loadDiaryEntries = async () => {
     try {
@@ -277,34 +301,30 @@ export default function HealthPage() {
 
   return (
     <View style={healthStyles.container}>
+      {/* ✅ 배경 이미지 - 동적으로 변경 */}
       <Image
-        source={require('../../../assets/images/배경.png')}
+        source={backgrounds.bg1}
         style={healthStyles.backgroundImage}
         resizeMode="cover"
       />
-      <Image
-        source={require('../../../assets/images/배경2.png')}
-        style={healthStyles.backgroundImage2}
-        resizeMode="cover"
-      />
+      {backgrounds.bg2 && (
+        <Image
+          source={backgrounds.bg2}
+          style={healthStyles.backgroundImage2}
+          resizeMode="cover"
+        />
+      )}
+
       <Image
         source={require('../../../assets/images/병원.png')}
         style={healthStyles.hospitalImage}
         resizeMode="contain"
       />
 
-      <View style={healthStyles.header}>
-        <TouchableOpacity style={healthStyles.backButton} onPress={handleBackPress}>
-          <Image
-            source={require('../../../assets/images/왼쪽화살표.png')}
-            style={healthStyles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <ScaledText fontSize={24} style={healthStyles.headerTitle}>
-          건강
-        </ScaledText>
-      </View>
+      <PageHeader
+        title="건강"
+        onBack={handleBackPress}
+      />
 
       <ScrollView contentContainerStyle={healthStyles.scrollContent}>
         <View style={healthStyles.heroSection}>

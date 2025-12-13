@@ -12,7 +12,7 @@ jobs:
       # 1. 내 코드 가져오기
       - uses: actions/checkout@v4
 
-      # 2. Node.js 설정 (toReversed 에러 해결을 위해 20 버전 사용)
+      # 2. Node.js 설정 (metro-config toReversed 에러 해결을 위해 20 버전 사용)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -31,9 +31,9 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # 5. Build Tools 29.0.3 강제 설치 (zipalign 에러 해결)
+      # 5. Build Tools 29.0.3 강제 설치 (sdkmanager 경로 에러 해결)
       - name: Install Android Build Tools 29.0.3 (Fix signing error)
-        run: echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager "build-tools;29.0.3"
+        run: echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;29.0.3"
 
       # 6. 권한 부여
       - name: Grant execute permission for gradlew

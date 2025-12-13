@@ -1,3 +1,4 @@
+// src/services/missionService.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../api/config';
 
@@ -11,6 +12,17 @@ export interface Challenge {
 interface DailyChallengeResponse {
   challenges: Challenge[];
   refresh_remaining: number;
+}
+
+interface CompleteChallengeRequest {
+  challenge_id: number;
+}
+
+interface CompleteChallengeResponse {
+  challenge_id: number;
+  is_complete: boolean;
+  earned_point: number;
+  total_point: number;
 }
 
 class MissionService {
@@ -31,7 +43,7 @@ class MissionService {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(()=> ({}));
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || "챌린지를 불러오지 못했습니다.");
     }
 
@@ -48,16 +60,37 @@ class MissionService {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(()=> ({}));
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || "새로고침 실패");
     }
     return await res.json(); // { challenges[], refresh_remaining }
   }
 
-  /** 🪷 미션 성공 → give_point 만큼 포인트 지급 */
+  /** ✅ 미션 완료 처리 (NEW) */
+  async completeChallenge(challengeId: number): Promise<CompleteChallengeResponse> {
+    const token = await this.getAccessToken();
+
+    const res = await fetch(`${API_BASE_URL}/challenges/daily/complete`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ challenge_id: challengeId })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "미션 완료 처리 실패");
+    }
+
+    return await res.json(); // { challenge_id, is_complete, earned_point, total_point }
+  }
+
+  /** 🪷 미션 성공 → give_point 만큼 포인트 지급 (기존 방식 - 이제 사용 안 함) */
   async earnPoint(point: number) {
     const token = await this.getAccessToken();
-    
+
     const res = await fetch(`${API_BASE_URL}/profile/me/point/earn`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -65,7 +98,7 @@ class MissionService {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(()=> ({}));
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || "포인트 지급 실패");
     }
 

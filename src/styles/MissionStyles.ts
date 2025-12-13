@@ -5,7 +5,7 @@ import { colors } from './colors';
 export const MissionStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
   },
   header: {
     flexDirection: 'row',
@@ -35,6 +35,7 @@ export const MissionStyles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+    paddingBottom: 100,
   },
   infoText: {
     fontSize: 14,
@@ -42,6 +43,24 @@ export const MissionStyles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     right: 20
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
   },
 
   // ========== 미션 리스트 ==========
@@ -77,7 +96,7 @@ export const MissionStyles = StyleSheet.create({
     marginRight: 1,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
@@ -146,16 +165,13 @@ export const MissionStyles = StyleSheet.create({
   },
   statValue: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#212529',
   },
   statDivider: {
     width: 1,
     backgroundColor: '#E9ECEF',
     marginHorizontal: 12,
-  },
-  missionList: {
-    gap: 0,
   },
   loadingText: {
     marginTop: 12,

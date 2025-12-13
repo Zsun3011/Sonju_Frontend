@@ -10,6 +10,7 @@ import { ChatProvider } from './contexts/ChatContext';
 import { PointProvider } from './contexts/PointContext';
 import { MissionProvider } from './contexts/MissionContext';
 import { apiClient } from './api/config';
+import { AuthProvider } from './contexts/AuthContext';
 
 export default function App() {
   const isDarkMode = useColorScheme() === 'dark';

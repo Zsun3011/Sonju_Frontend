@@ -1,224 +1,241 @@
 // src/contexts/ChatContext.tsx
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../api/config';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { chatAPI, ChatListItem, SendMessageResponse, TodoMeta, BulkDeleteResponse } from '../services/chatService';
+import { Personality } from '../types/ai';
 
-// ================================
-// 🔥 타입 정의
-// ================================
-export interface ChatMessage {
-  chat_num: number;
-  message: string;
-  isUser: boolean;
-  chat_date: string;
-  chat_time: string;
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  chat_num?: number;
 }
 
-export interface ChatListItem {
+export interface Chat {
   chat_list_num: number;
-  last_message: string;
-  last_date: string;
+  messages: Message[];
 }
 
-export interface TodoMeta {
-  has_todo: boolean;
-  step: string;
-  task?: string;
-  date?: string;
-  time?: string;
-  todo_num?: number;
-}
-
-// ================================
-// 🔥 Context 타입
-// ================================
 interface ChatContextType {
+  currentChat: Chat | null;
   chatLists: ChatListItem[];
-  currentChat: { chat_list_num: number; messages: ChatMessage[] } | null;
-
-  sendMessageToAI(message: string, chat_list_num?: number, tts?: boolean): Promise<void>;
-  loadChatLists(): Promise<void>;
-  loadChatMessages(chat_list_num: number): Promise<void>;
-  deleteChatLists(listIds: number[]): Promise<any>;
-  
-  clearChat(): void;
-
+  currentPrompt: Personality;
   currentTodoMeta: TodoMeta | null;
-  setCurrentTodoMeta(v: TodoMeta | null): void;
+  sendMessageToAI: (message: string, chatListNum?: number, enableTTS?: boolean) => Promise<SendMessageResponse>;
+  loadChatLists: () => Promise<void>;
+  loadChatMessages: (chatListNum: number) => Promise<void>;
+  deleteChatLists: (listNos: number[]) => Promise<BulkDeleteResponse>;
+  clearChat: () => void;
+  setCurrentPrompt: (prompt: Personality) => void;
+  setCurrentTodoMeta: (meta: TodoMeta | null) => void;
 }
 
-// ================================
-// 🔥 Context 생성
-// ================================
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  const [currentChat, setCurrentChat] = useState<Chat | null>(null);
   const [chatLists, setChatLists] = useState<ChatListItem[]>([]);
-  const [currentChat, setCurrentChat] = useState<any>(null);
+  const [currentPrompt, setCurrentPrompt] = useState<Personality>(Personality.FRIENDLY);
   const [currentTodoMeta, setCurrentTodoMeta] = useState<TodoMeta | null>(null);
 
-  // ================================
-  // 📥 AccessToken 가져오기
-  // ================================
-  const getToken = async () => {
-    const token = await AsyncStorage.getItem('accessToken');
-    if (!token) throw new Error("로그인 토큰 없음");
-    return token;
+  /**
+   * 메시지 전송 및 AI 응답 받기
+   */
+  const sendMessageToAI = async (
+    message: string,
+    chatListNum?: number,
+    enableTTS: boolean = false
+  ): Promise<SendMessageResponse> => {
+    try {
+      console.log('🚀 [sendMessageToAI] 메시지 전송 시작');
+      console.log('  📝 message:', message);
+      console.log('  🔢 chatListNum:', chatListNum);
+      
+      // 사용자 메시지를 즉시 UI에 추가
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date(),
+      };
+
+      // 현재 채팅이 있으면 메시지 추가, 없으면 새 채팅 생성
+      if (currentChat) {
+        setCurrentChat({
+          ...currentChat,
+          messages: [...currentChat.messages, userMessage],
+        });
+      } else {
+        setCurrentChat({
+          chat_list_num: chatListNum || 0,
+          messages: [userMessage],
+        });
+      }
+
+      // API 호출
+      const response = await chatAPI.sendMessage({
+        message,
+        chat_list_num: chatListNum,
+      });
+
+      console.log('✅ [sendMessageToAI] API 응답 받음');
+      console.log('  📨 전체 응답:', JSON.stringify(response, null, 2));
+      console.log('  🤖 AI 메시지:', response.ai.message);
+      console.log('  📋 Todo 정보:');
+      console.log('    - has_todo:', response.todo.has_todo);
+      console.log('    - step:', response.todo.step);
+      console.log('    - task:', response.todo.task);
+      console.log('    - date:', response.todo.date);
+      console.log('    - time:', response.todo.time);
+      console.log('    - todo_num:', response.todo.todo_num);
+
+      // AI 응답을 UI에 추가
+      const aiMessage: Message = {
+        id: `ai-${response.ai.chat_num}`,
+        role: 'assistant',
+        content: response.ai.message,
+        timestamp: new Date(`${response.ai.chat_date}T${response.ai.chat_time}`),
+        chat_num: response.ai.chat_num,
+      };
+
+      setCurrentChat((prev) => ({
+        chat_list_num: response.ai.chat_list_num,
+        messages: prev ? [...prev.messages, aiMessage] : [userMessage, aiMessage],
+      }));
+
+      // Todo 메타 정보 업데이트 (완전히 새로운 객체로 교체)
+      console.log('💾 [sendMessageToAI] Todo 메타 정보 업데이트');
+      
+      // step이 'none', 'cancelled', 또는 'saved'이면 null로 설정
+      if (response.todo.step === 'none' || response.todo.step === 'cancelled') {
+        console.log('  ⚠️ Todo step이 none/cancelled - 메타 정보 초기화');
+        setCurrentTodoMeta(null);
+      } else if (response.todo.step === 'saved') {
+        console.log('  ✅ Todo 저장 완료 - 메타 정보 설정 후 초기화 예약');
+        // saved step일 때는 일단 설정 (알림을 위해)
+        setCurrentTodoMeta({
+          has_todo: response.todo.has_todo,
+          step: response.todo.step,
+          task: response.todo.task,
+          date: response.todo.date,
+          time: response.todo.time,
+          todo_num: response.todo.todo_num,
+        });
+        // 3초 후 자동으로 초기화하여 다음 Todo를 받을 준비
+        setTimeout(() => {
+          console.log('  🔄 Todo 메타 자동 초기화 (saved 완료 후)');
+          setCurrentTodoMeta(null);
+        }, 3000);
+      } else {
+        console.log('  ✅ 새로운 Todo 메타 정보 설정:', response.todo);
+        setCurrentTodoMeta({
+          has_todo: response.todo.has_todo,
+          step: response.todo.step,
+          task: response.todo.task,
+          date: response.todo.date,
+          time: response.todo.time,
+          todo_num: response.todo.todo_num,
+        });
+      }
+
+      return response;
+    } catch (error) {
+      console.error('❌ [sendMessageToAI] 실패:', error);
+      throw error;
+    }
   };
 
-  // ================================
-  // 🔥 ① 메시지 전송 + AI 응답 생성
-  // ================================
-  const sendMessageToAI = useCallback(async (message: string, chat_list_num?: number, tts=false) => {
-    const token = await getToken();
-
-    const body = {
-      message,
-      chat_list_num: chat_list_num ?? null
-    };
-
-    const res = await fetch(`${API_BASE_URL}/chats/messages`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body)
-    });
-
-    const data = await res.json();
-
-    // 🔹 currentChat 없으면 생성
-    const chatId = data.ai.chat_list_num;
-    if (!currentChat || currentChat.chat_list_num !== chatId) {
-      setCurrentChat({ chat_list_num: chatId, messages: [] });
+  /**
+   * 채팅방 목록 불러오기
+   */
+  const loadChatLists = async () => {
+    try {
+      const lists = await chatAPI.getChatLists();
+      setChatLists(lists);
+    } catch (error) {
+      console.error('Failed to load chat lists:', error);
+      throw error;
     }
+  };
 
-    // 🔻 사용자 메시지 추가
-    setCurrentChat(prev => ({
-      chat_list_num: chatId,
-      messages: [
-        ...prev?.messages ?? [],
-        { chat_num:-1, message, isUser:true, chat_date:'', chat_time:'' }
-      ]
-    }));
+  /**
+   * 특정 채팅방의 모든 메시지 불러오기
+   */
+  const loadChatMessages = async (chatListNum: number) => {
+    try {
+      const messages = await chatAPI.getChatMessages(chatListNum);
+      
+      // API 응답을 Message 형식으로 변환
+      const formattedMessages: Message[] = messages.map((msg) => ({
+        id: `msg-${msg.chat_num}`,
+        role: msg.chat_num % 2 === 0 ? 'assistant' : 'user', // 임시: 실제로는 role 필드 필요
+        content: msg.message,
+        timestamp: new Date(), // 임시: 실제로는 chat_date, chat_time 필요
+        chat_num: msg.chat_num,
+      }));
 
-    // 🔻 AI 응답 추가
-    setCurrentChat(prev => ({
-      chat_list_num: chatId,
-      messages: [...prev.messages, {
-        chat_num: data.ai.chat_num,
-        message: data.ai.message,
-        isUser:false,
-        chat_date:data.ai.chat_date,
-        chat_time:data.ai.chat_time
-      }]
-    }));
-
-    // ChatContext.tsx (핵심 부분만 줌)
-    // ★ 여기서 todo.step 값에 따라 ChatRoom UI에서 대응 가능
-
-    if (data.todo) {
-      setCurrentTodoMeta(data.todo);
-
-      switch(data.todo.step) {
-          case "suggest":
-              console.log("💬 할일 제안받음 → 유저가 Yes/No 또는 그냥 대답하면 흘러감");
-              break;
-
-          case "ask_confirm":
-              console.log("🤔 AI가 확인 요청중 → '응', '취소', '아니오' 등 자연어 그대로 전송하면 됨");
-              break;
-
-          case "ask_date":
-              console.log("📅 AI가 날짜/시간 요청중 → 희경이 입력하는 자연어 그대로 sendMessageToAI()");
-              break;
-
-          case "saved":
-              console.log(`🎉 Todo 생성 완료 (#${data.todo.todo_num})`);
-              break;
-
-          case "cancelled":
-              console.log("❌ Todo 등록 취소됨 → 다음 대화 계속");
-              break;
-
-          case "none":
-          default:
-              break;
-      }
+      setCurrentChat({
+        chat_list_num: chatListNum,
+        messages: formattedMessages,
+      });
+    } catch (error) {
+      console.error('Failed to load chat messages:', error);
+      throw error;
     }
+  };
 
+  /**
+   * 여러 채팅방 삭제
+   */
+  const deleteChatLists = async (listNos: number[]): Promise<BulkDeleteResponse> => {
+    try {
+      const response = await chatAPI.bulkDeleteChats({ list_no: listNos });
+      
+      // 삭제된 채팅방을 목록에서 제거
+      setChatLists((prev) =>
+        prev.filter((chat) => !response.deleted_lists.includes(chat.chat_list_num))
+      );
 
-    await loadChatLists(); // 최근 메시지 갱신
-  }, [currentChat]);
+      return response;
+    } catch (error) {
+      console.error('Failed to delete chat lists:', error);
+      throw error;
+    }
+  };
 
-  // ================================
-  // 🔥 ② 채팅방 목록 가져오기
-  // ================================
-  const loadChatLists = useCallback(async () => {
-    const token = await getToken();
-    const res = await fetch(`${API_BASE_URL}/chats/lists`, {
-      headers:{ "Authorization": `Bearer ${token}` }
-    });
-    setChatLists(await res.json());
-  }, []);
-
-  // ================================
-  // 🔥 ③ 특정 채팅방 메시지 로드
-  // ================================
-  const loadChatMessages = useCallback( async (listNum:number) => {
-    const token = await getToken();
-    const res = await fetch(`${API_BASE_URL}/chats/messages/${listNum}`, {
-      headers:{ "Authorization": `Bearer ${token}` }
-    });
-
-    const messages = await res.json();
-    setCurrentChat({ chat_list_num:listNum, messages });
-  }, []);
-
-  // ================================
-  // 🔥 ④ 채팅방 삭제
-  // ================================
-  const deleteChatLists = useCallback(async(listIds:number[])=>{
-    const token = await getToken();
-
-    const res = await fetch(`${API_BASE_URL}/chats/bulk-delete`, {
-      method:"POST",
-      headers:{
-        "Authorization": `Bearer ${token}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({ chat_list_nums:listIds })
-    });
-
-    await loadChatLists();
-    return await res.json();
-  },[]);
-
-  // ================================
-  // 🔥 ⑤ 전체 채팅 리셋
-  // ================================
-  const clearChat = () => setCurrentChat(null);
+  /**
+   * 현재 채팅 초기화 (새 채팅 시작)
+   */
+  const clearChat = () => {
+    setCurrentChat(null);
+    setCurrentTodoMeta(null);
+  };
 
   return (
-    <ChatContext.Provider value={{
-      chatLists,
-      currentChat,
-      sendMessageToAI,
-      loadChatLists,
-      loadChatMessages,
-      deleteChatLists,
-      clearChat,
-      currentTodoMeta,
-      setCurrentTodoMeta
-    }}>
+    <ChatContext.Provider
+      value={{
+        currentChat,
+        chatLists,
+        currentPrompt,
+        currentTodoMeta,
+        sendMessageToAI,
+        loadChatLists,
+        loadChatMessages,
+        deleteChatLists,
+        clearChat,
+        setCurrentPrompt,
+        setCurrentTodoMeta,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );
 };
 
 export const useChat = () => {
-  const ctx = useContext(ChatContext);
-  if (!ctx) throw new Error("useChat must be used inside ChatProvider");
-  return ctx;
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error('useChat must be used with빨in ChatProvider');
+  }
+  return context;
 };

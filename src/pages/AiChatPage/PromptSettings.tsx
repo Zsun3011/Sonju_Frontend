@@ -1,4 +1,4 @@
-// src/screens/PromptSettings.tsx
+// src/screens/chat/PromptSettings.tsx
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
@@ -7,7 +7,8 @@ import {
   StyleSheet, 
   ScrollView,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import ScaledText from '../../components/ScaledText';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,7 +20,6 @@ import { Personality } from '../../types/ai';
 import { promptConfigs } from '../../utils/promptHelper';
 import { ChatStackParamList } from '../../types/navigation';
 import { aiProfileAPI } from '../../services/aiProfile';
-import ScaledText from '../../components/ScaledText';
 
 type PromptSettingsNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'PromptSettings'>;
 
@@ -31,9 +31,6 @@ const PromptSettings = () => {
   const [loading, setLoading] = useState(false);
   const [aiNickname, setAiNickname] = useState<string>('손주');
 
-  /**
-   * AI 프로필 불러오기
-   */
   useEffect(() => {
     const fetchAiProfile = async () => {
       try {
@@ -53,30 +50,26 @@ const PromptSettings = () => {
     setSelectedPrompt(promptType);
   };
 
-  // handleSave 함수 수정
-const handleSave = async () => {
-  try {
-    setLoading(true);
+  const handleSave = async () => {
+    try {
+      setLoading(true);
 
-    // 백엔드에 성격 업데이트 (PUT /ai/preferences)
-    await aiProfileAPI.updatePreferences(selectedPrompt);
+      await aiProfileAPI.updatePreferences(selectedPrompt);
+      setCurrentPrompt(selectedPrompt);
 
-    // 로컬 상태 업데이트
-    setCurrentPrompt(selectedPrompt);
-
-    Alert.alert('저장 완료', `${aiNickname}의 성격이 변경되었습니다.`, [
-      {
-        text: '확인',
-        onPress: () => navigation.goBack(),
-      },
-    ]);
-  } catch (error: any) {
-    console.error('프롬프트 저장 실패:', error);
-    Alert.alert('오류', error.message || '성격 변경에 실패했습니다.');
-  } finally {
-    setLoading(false);
-  }
-};
+      Alert.alert('저장 완료', `${aiNickname}의 성격이 변경되었습니다.`, [
+        {
+          text: '확인',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (error: any) {
+      console.error('프롬프트 저장 실패:', error);
+      Alert.alert('오류', error.message || '성격 변경에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const promptTypes: Personality[] = [
     Personality.FRIENDLY,
@@ -88,30 +81,34 @@ const handleSave = async () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
-        {/* 헤더 */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Icon name="chevron-back" size={24} color="#333" />
           </TouchableOpacity>
 
-          {/* 큰 글씨 24 */}
           <ScaledText style={styles.headerTitle} fontSize={24}>
             프롬프트 설정
           </ScaledText>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            {/* 중간 글씨 20 */}
-            <ScaledText style={styles.saveButtonText} fontSize={20}>
-              저장
-            </ScaledText>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#02BFDC" />
+            ) : (
+              <ScaledText style={styles.saveButtonText} fontSize={20}>
+                저장
+              </ScaledText>
+            )}
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content}>
-          {/* 캐릭터 이미지 */}
           <View style={styles.characterContainer}>
             <View style={styles.characterPlaceholder}>
-              <Icon name="person" size={80} color="#02BFDC" />
+              <Image
+                source={require('../../../assets/images/icons/SonjuHeadIcon.png')}
+                style={styles.character}
+                resizeMode="contain"
+              />
             </View>
             <ScaledText fontSize={20} style={styles.characterName}>{aiNickname}</ScaledText>
           </View>
@@ -126,34 +123,41 @@ const handleSave = async () => {
               const config = promptConfigs[type];
               const isSelected = selectedPrompt === type;
 
-                return (
-                  <TouchableOpacity
-                    key={type}
-                    style={[styles.promptItem, isSelected && styles.promptItemSelected]}
-                    onPress={() => handleSelectPrompt(type)}
-                    activeOpacity={0.7}
-                  >
-                  {/* 작은 글씨 18 */}
-                    <View style={styles.promptItemContent}>
+              return (
+                <TouchableOpacity
+                  key={type}
+                  style={[styles.promptItem, isSelected && styles.promptItemSelected]}
+                  onPress={() => handleSelectPrompt(type)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.promptItemContent}>
                     <ScaledText
-                    style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}
-                    fontSize={18}
-                  >
-                        {config.label}
-                      </ScaledText>
-                      <Text style={[styles.promptDescription, isSelected && styles.promptDescriptionSelected]}>
+                      style={[styles.promptLabel, isSelected && styles.promptLabelSelected]}
+                      fontSize={18}
+                    >
+                      {config.label}
+                    </ScaledText>
+
+                    <ScaledText
+                      style={[
+                        styles.promptDescription,
+                        isSelected && styles.promptDescriptionSelected,
+                      ]}
+                      fontSize={14}
+                    >
                       {config.description}
                     </ScaledText>
                   </View>
+
                   {isSelected && (
                     <Icon name="checkmark-circle" size={24} color="#02BFDC" />
                   )}
                 </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
-        </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -163,10 +167,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#B8E9F5',
   },
-  saveButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    minWidth: 50,
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     height: 56,
@@ -180,7 +182,6 @@ const styles = StyleSheet.create({
     width: 80,
   },
   headerTitle: {
-    fontSize: 18, // ScaledText가 24 기준으로 스케일 적용
     fontWeight: '600',
     color: '#2D4550',
   },
@@ -190,7 +191,6 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   saveButtonText: {
-    fontSize: 16, // ScaledText가 20 기준으로 스케일 적용
     color: '#02BFDC',
     fontWeight: '600',
   },
@@ -206,10 +206,16 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#A5BCC3',
+    backgroundColor: '#9fd8e9ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  characterName: {
+    marginTop: 16,
+    fontWeight: '600',
+    color: '#2D4550',
   },
   description: {
-    fontSize: 18, // ScaledText가 20 기준으로 스케일 적용
     fontWeight: '500',
     color: '#2D4550',
     textAlign: 'center',
@@ -245,7 +251,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   promptLabel: {
-    fontSize: 18, // ScaledText가 18 기준으로 스케일 적용(작게)
     fontWeight: '500',
     color: '#2D4550',
     marginBottom: 4,

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/screens/chat/ChatMain.tsx
+import React, { useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import ScaledText from '../../components/ScaledText';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +11,6 @@ import SuggestedQuestion from '../../components/chat/SuggestedQuestion';
 import ChatInput from '../../components/chat/ChatInput';
 import { useChat } from '../../contexts/ChatContext';
 import { ChatStackParamList } from '../../types/navigation';
-import { ChatStyles } from '../../styles/ChatStyles';
 
 type ChatMainNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'ChatMain'>;
 
@@ -21,7 +21,6 @@ const ChatMain = () => {
 
   const suggestedQuestions = ['오늘 뉴스 요약', '오늘 날씨 어때?'];
 
-  // ⭐ ChatMain 화면 진입 시 항상 새 채팅 준비
   useFocusEffect(
     React.useCallback(() => {
       clearChat();
@@ -34,14 +33,11 @@ const ChatMain = () => {
     setIsLoading(true);
 
     try {
-      // ⭐ 새 채팅 시작: chat_list_num 없이 전송하여 새 채팅방 생성
-      const response = await sendMessageToAI(message, undefined, false);
+      // 새 채팅 시작: chat_list_num 없이 전송하여 새 채팅방 생성
+      await sendMessageToAI(message, undefined, false);
 
       // AI 응답을 받으면 채팅방으로 이동
       navigation.navigate('ChatRoom');
-
-      // Todo 메타 정보 처리는 ChatRoom에서 수행
-      // response.todo.step에 따라 다른 처리가 필요할 수 있음
     } catch (error) {
       console.error('Failed to send message:', error);
       Alert.alert(
@@ -56,10 +52,6 @@ const ChatMain = () => {
 
   const handleQuestionClick = (question: string) => {
     handleSendMessage(question);
-  };
-
-  const handleNewChat = () => {
-    clearChat();
   };
 
   return (
@@ -80,23 +72,24 @@ const ChatMain = () => {
         }
       />
 
-      <View style={ChatStyles.mainContent}>
-        <View style={ChatStyles.characterContainer}>
+      <View style={styles.mainContent}>
+        <View style={styles.characterContainer}>
           <View style={styles.glow} />
           <Image
             source={require('../../../assets/images/icons/SonjuHeadIcon.png')}
-            style={ChatStyles.characterSmall}
+            style={[
+              styles.character,
+              { transform: [{ scale: 0.7 }] } // ← 여기 숫자만 조절
+            ]}
             resizeMode="contain"
           />
         </View>
 
-        {/* 큰 글씨 24 */}
         <ScaledText style={styles.title} fontSize={24}>
           무엇이든 물어보세요.
         </ScaledText>
 
         <View style={styles.suggestionsContainer}>
-          {/* 작은 글씨 18 */}
           <ScaledText style={styles.suggestionsTitle} fontSize={18}>
             추천 질문
           </ScaledText>
@@ -159,7 +152,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   title: {
-    fontSize: 24, // ScaledText가 무시하고 24 기준으로 스케일 적용
     fontWeight: '600',
     color: '#2D4550',
     marginBottom: 32,
@@ -169,7 +161,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   suggestionsTitle: {
-    fontSize: 14, // ScaledText가 무시하고 18 기준으로 스케일 적용
     color: '#7A9CA5',
     marginBottom: 16,
     textAlign: 'center',

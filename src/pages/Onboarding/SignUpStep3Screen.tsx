@@ -1,11 +1,8 @@
-// src/pages/Onboarding/SignUpStep3Screen.tsx
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { onboardingStyles as s } from '../../styles/Template';
 import { CognitoUser, CognitoUserPool, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import { apiClient } from '../../api/config';
-import ScaledText from '../../components/ScaledText';
 
 function verify(
   name: string,
@@ -24,8 +21,9 @@ function verify(
         const msg = err.message || '';
         console.error('인증번호 확인 실패:', msg);
 
+        // 이미 인증된 계정이면 성공으로 간주
         if (msg.includes('Current status is CONFIRMED') || msg.includes('cannot be confirmed')) {
-          console.log('✅ 이미 인증된 사용자 → 정상 처리로 간주');
+          console.log('이미 인증된 사용자 → 정상 처리로 간주');
           resolve(true);
           return;
         }
@@ -34,7 +32,7 @@ function verify(
         return;
       }
 
-      console.log('✅ 인증번호 확인 성공:', result);
+      console.log('인증번호 확인 성공:', result);
       resolve(true);
     });
   });

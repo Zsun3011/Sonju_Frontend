@@ -1,4 +1,3 @@
-// src/pages/Onboarding/LoginScreen.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,14 +17,15 @@ function logIn(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const userPool = new CognitoUserPool(poolData);
-    const cognitoUser = new CognitoUser({
-      Username: phoneNumber,
-      Pool: userPool,
-    });
 
     const authDetails = new AuthenticationDetails({
-      Username: phoneNumber,
+      Username: name,
       Password: password,
+    });
+
+    const cognitoUser = new CognitoUser({
+      Username: name,
+      Pool: userPool,
     });
 
     cognitoUser.authenticateUser(authDetails, {
@@ -35,9 +35,13 @@ function logIn(
         resolve(accessToken);
       },
       onFailure: (err) => {
-        console.error('❌ Cognito 로그인 실패:', err);
-        reject(err);
-      }
+        console.error('Cognito 로그인 실패:', err);
+        reject(new Error(err.message || '로그인 실패'));
+      },
+      newPasswordRequired: () => {
+        console.error('새 비밀번호가 필요합니다');
+        reject(new Error('새 비밀번호 설정이 필요합니다'));
+      },
     });
   });
 }
@@ -46,7 +50,6 @@ export default function LoginScreen({ navigation }: any) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { refreshAuth } = useAuth();
 
   const formatPhone = (text: string) => {
     const numbers = text.replace(/[^0-9]/g, '');
@@ -55,44 +58,8 @@ export default function LoginScreen({ navigation }: any) {
 
   const handlePhoneChange = (text: string) => {
     const formatted = formatPhone(text);
-    setPhoneNumber(formatted);
+    setPhone(formatted);
   };
-
-  // src/pages/Onboarding/LoginScreen.tsx
-
-/**
- * AI 프로필 조회
- */
-async function getAiProfile() {
-  console.log('👤 AI 프로필 조회...');
-  
-  const accessToken = await AsyncStorage.getItem('accessToken');
-  
-  const response = await fetch(
-    `${API_BASE_URL}/ai/me`,
-    {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    }
-  );
-
-  if (response.status === 404) {
-    // AI 프로필 없음
-    console.log('⚠️ AI 프로필 없음');
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error('AI 프로필 조회 실패');
-  }
-
-  const data = await response.json();
-  console.log('✅ AI 프로필:', data);
-  
-  return data;
-}
 
   const handleLogin = async () => {
     if (!phone || !password) {
@@ -172,8 +139,9 @@ async function getAiProfile() {
       <Text style={s.title}>로그인</Text>
 
       <TextInput
+        style={s.input}
         placeholder="01012345678"
-        value={phoneNumber}
+        value={phone}
         onChangeText={handlePhoneChange}
         keyboardType="number-pad"
         maxLength={11}
@@ -181,61 +149,26 @@ async function getAiProfile() {
       />
 
       <TextInput
+        style={s.input}
         placeholder="비밀번호를 입력하세요"
+        secureTextEntry
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
         autoCapitalize="none"
         editable={!loading}
-        style={{
-          borderWidth: 1,
-          borderColor: '#E0E0E0',
-          borderRadius: 8,
-          padding: 12,
-          marginBottom: 24,
-          fontSize: 16,
-        }}
       />
 
       <TouchableOpacity
         style={s.smallButton}
         onPress={handleLogin}
         disabled={loading}
-        style={{
-          backgroundColor: loading ? '#CED4DA' : '#02BFDC',
-          borderRadius: 8,
-          padding: 16,
-          alignItems: 'center',
-        }}
       >
         {loading ? (
-          <ActivityIndicator color="#FFF" />
+          <ActivityIndicator color="#fff" />
         ) : (
-          <ScaledText fontSize={16} style={{ color: '#FFF', fontWeight: '600' }}>
-            로그인
-          </ScaledText>
+          <Text style={s.buttonText}>로그인</Text>
         )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => {
-          console.log('✅ 회원가입 화면으로 이동');
-          navigation.navigate('SignUpStep1');
-        }}
-        disabled={loading}
-        style={{
-          marginTop: 16,
-          alignItems: 'center',
-          padding: 12,
-        }}
-      >
-        <ScaledText fontSize={14} style={{ color: '#02BFDC' }}>
-          회원가입하기
-        </ScaledText>
       </TouchableOpacity>
     </View>
   );
-};
-
-export default LoginScreen;
-
+}

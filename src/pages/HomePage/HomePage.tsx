@@ -6,19 +6,28 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScaledText from '../../components/ScaledText';
 import { styles } from '../../styles/Home';
 import { usePoints } from '../../contexts/PointContext';
+import { getCurrentBackgrounds } from '../../utils/backgroundConfig';
 
 export default function HomePage({ navigation }: any) {
   const { points } = usePoints();
   const [equippedItems, setEquippedItems] = useState<{
     [key: string]: string;
   }>({});
-  const [sonjuName, setSonjuName] = useState('손주'); // ⭐ 기본값
+  const [sonjuName, setSonjuName] = useState('손주');
+  const [backgrounds, setBackgrounds] = useState<{
+    bg1: any;
+    bg2: any | null;
+  }>({
+    bg1: require('../../../assets/images/배경.png'),
+    bg2: require('../../../assets/images/배경2.png'),
+  });
 
-  // 화면이 포커스될 때마다 착용한 아이템 및 AI 프로필 로드
+  // 화면이 포커스될 때마다 착용한 아이템, AI 프로필, 배경 로드
   useFocusEffect(
     React.useCallback(() => {
       loadEquippedItems();
-      loadAiProfile(); // ⭐ AI 프로필 로드
+      loadAiProfile();
+      loadBackground();
     }, [])
   );
 
@@ -33,7 +42,6 @@ export default function HomePage({ navigation }: any) {
     }
   };
 
-  // ⭐ AI 프로필 로드 (닉네임)
   const loadAiProfile = async () => {
     try {
       const aiProfileStr = await AsyncStorage.getItem('aiProfile');
@@ -51,7 +59,17 @@ export default function HomePage({ navigation }: any) {
     }
   };
 
-  // 착용한 아이템에 따른 캐릭터 이미지 선택
+  const loadBackground = async () => {
+    try {
+      const equippedBg = await AsyncStorage.getItem('equippedBackground');
+      const bgs = getCurrentBackgrounds(equippedBg, 'main');
+      setBackgrounds(bgs);
+      console.log('✅ 메인 배경 로드:', equippedBg || '기본 배경');
+    } catch (error) {
+      console.error('배경 로드 실패:', error);
+    }
+  };
+
   const getCharacterImage = () => {
     const equippedItemIds = Object.values(equippedItems);
 
@@ -98,17 +116,21 @@ export default function HomePage({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      {/* 배경 이미지 */}
+      {/* 배경 이미지 - 동적으로 변경 */}
       <Image
-        source={require('../../../assets/images/배경.png')}
-        style={styles.backgroundImage}
+        source={backgrounds.bg1}
+        style={[styles.backgroundImage,
+          { transform: [{ scale: 1.0 }] }]}
         resizeMode="cover"
       />
-      <Image
-        source={require('../../../assets/images/배경2.png')}
-        style={styles.backgroundImage2}
-        resizeMode="cover"
-      />
+      {backgrounds.bg2 && (
+        <Image
+          source={backgrounds.bg2}
+          style={styles.backgroundImage2}
+          resizeMode="cover"
+        />
+      )}
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* 퀵 메뉴 */}
         <View style={styles.quickMenuContainer}>
@@ -132,7 +154,6 @@ export default function HomePage({ navigation }: any) {
 
         {/* 캐릭터 영역 */}
         <View style={styles.characterSection}>
-          {/* ⭐ AI 프로필 닉네임 표시 */}
           <ScaledText fontSize={28} style={styles.characterName}>
             {sonjuName}
           </ScaledText>

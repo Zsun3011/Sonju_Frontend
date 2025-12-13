@@ -2,60 +2,39 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScaledText from '../ScaledText';
-import { Message } from '../../contexts/ChatContext';
+import { ChatMessage } from '@/contexts/ChatContext';
 
 interface ChatBubbleProps {
-  message: Message;
-  showTodoSuggestion?: boolean;
-  todoTask?: string;
-  todoDate?: string;
-  todoTime?: string;
-  onTodoAccept?: () => void;
-  onTodoReject?: () => void;
+  message: ChatMessage;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ 
-  message, 
-  showTodoSuggestion = false,
-  todoTask,
-  todoDate,
-  todoTime,
-  onTodoAccept,
-  onTodoReject,
-}) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const isUser = message.role === 'user';
 
   if (isUser) {
     return (
       <View style={styles.userContainer}>
         <View style={styles.userBubble}>
-          {/* 본문: 중간 20 */}
           <ScaledText style={styles.userText} fontSize={20}>
             {message.content}
           </ScaledText>
         </View>
+        <ScaledText fontSize={12} style={styles.userTimestamp}>
+          {message.timestamp.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+        </ScaledText>
       </View>
     );
   }
 
   return (
     <View style={styles.assistantContainer}>
-      {/* TODO: 캐릭터 아바타 이미지 에셋 추가
-      <Image
-        source={require('../../assets/character-excited.png')}
-        style={styles.avatar}
-      />
-      */}
       <View style={styles.avatarPlaceholder} />
       <View style={styles.assistantBubble}>
-        {/* 본문: 중간 20 */}
         <ScaledText style={styles.assistantText} fontSize={20}>
           {message.content}
         </ScaledText>
       </View>
-      
-      {/* 타임스탬프 */}
-      <ScaledText fontSize={12} style={[styles.timestamp, isUser ? styles.userTimestamp : styles.assistantTimestamp]}>
+      <ScaledText fontSize={12} style={styles.assistantTimestamp}>
         {message.timestamp.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
       </ScaledText>
     </View>
@@ -63,7 +42,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
+  userContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
     marginBottom: 16,
     paddingHorizontal: 16,
   },
@@ -81,17 +62,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   userText: {
-    fontSize: 20, // ScaledText가 20을 기준으로 스케일 적용
     lineHeight: 28,
     color: '#FFFFFF',
   },
-  assistantContainer: {
-    alignItems: 'flex-start',
+  userTimestamp: {
+    color: '#7A9CA5',
+    marginTop: 4,
   },
-  bubble: {
-    maxWidth: '80%',
-    borderRadius: 16,
-    paddingVertical: 12,
+  assistantContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
     paddingHorizontal: 16,
   },
   avatarPlaceholder: {
@@ -99,10 +80,15 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: '#A5BCC3',
+    marginRight: 12,
   },
   assistantBubble: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     borderBottomLeftRadius: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    maxWidth: '75%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -110,44 +96,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   assistantText: {
-    fontSize: 20, // ScaledText가 20을 기준으로 스케일 적용
     lineHeight: 28,
     color: '#2D4550',
   },
-  todoSuggestion: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E8F8FA',
-  },
-  todoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  todoLabel: {
-    color: '#7A9CA5',
-    fontWeight: '500',
-  },
-  todoTask: {
-    color: '#2D4550',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  todoDateTime: {
-    color: '#5B8A95',
-    fontSize: 14,
-  },
-  timestamp: {
-    marginTop: 4,
-  },
-  userTimestamp: {
-    color: '#7A9CA5',
-    textAlign: 'right',
-  },
   assistantTimestamp: {
     color: '#7A9CA5',
-    textAlign: 'left',
+    marginTop: 4,
+    marginLeft: 60,
   },
 });
 

@@ -10,6 +10,7 @@ import PageHeader from '../../components/common/PageHeader';
 import { useChat } from '../../contexts/ChatContext';
 import { ChatStackParamList } from '../../types/navigation';
 import { ChatListItem } from '../../services/chatService';
+import { ChatStyles } from '@/styles/ChatStyles';
 
 type ChatListNavigationProp = NativeStackNavigationProp<ChatStackParamList, 'ChatList'>;
 
@@ -54,10 +55,7 @@ const ChatList = () => {
     } else {
       setIsLoading(true);
       try {
-        // 특정 채팅방의 모든 메시지 로드
         await loadChatMessages(chatListNum);
-        
-        // 채팅방 화면으로 이동
         navigation.navigate('ChatRoom');
       } catch (error) {
         console.error('Failed to load chat messages:', error);
@@ -99,7 +97,6 @@ const ChatList = () => {
             try {
               const response = await deleteChatLists(selectedItems);
               
-              // 삭제 결과 알림
               if (response.not_found.length > 0) {
                 Alert.alert(
                   '삭제 완료',
@@ -137,7 +134,6 @@ const ChatList = () => {
     const date = new Date(dateString);
     const now = new Date();
     
-    // 날짜만 비교 (시간 제외)
     const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const diff = nowOnly.getTime() - dateOnly.getTime();
@@ -151,16 +147,6 @@ const ChatList = () => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}/${month}/${day}`;
-  };
-
-  const getTitle = (item: ChatListItem) => {
-    // 마지막 메시지의 처음 30자를 제목으로 사용
-    if (item.last_message) {
-      return item.last_message.length > 30 
-        ? `${item.last_message.substring(0, 30)}...` 
-        : item.last_message;
-    }
-    return `채팅방 ${item.chat_list_num}`;
   };
 
   const renderChatItem = ({ item }: { item: ChatListItem }) => {
@@ -177,14 +163,15 @@ const ChatList = () => {
         activeOpacity={0.7}
         disabled={isLoading}
       >
-        <View style={ChatStyles.chatListContent}>
-          {/* 중간 글씨 20 */}
-          <ScaledText style={ChatStyles.chatListTitle} numberOfLines={1} fontSize={20}>
-            {item.title}
+        <View style={styles.chatContent}>
+          {/* last_message를 title로 사용 */}
+          <ScaledText style={styles.chatTitle} numberOfLines={1} fontSize={20}>
+            {item.last_message.length > 30 
+              ? `${item.last_message.substring(0, 30)}...` 
+              : item.last_message}
           </ScaledText>
-          {/* 작은 글씨 18 */}
-          <ScaledText style={ChatStyles.chatListDate} fontSize={18}>
-            {formatDate(item.date)}
+          <ScaledText style={styles.chatDate} fontSize={18}>
+            {formatDate(item.last_date)}
           </ScaledText>
         </View>
 
@@ -198,68 +185,63 @@ const ChatList = () => {
   };
 
   return (
-    <SafeAreaView style={ChatStyles.container}>
-      <View style={ChatStyles.container}>
-        {/* 헤더 */}
-        <View style={ChatStyles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={ChatStyles.headerButton}>
-            <Icon name="chevron-back" size={24} color={colors.text} />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+            <Icon name="chevron-back" size={24} color="#2D4550" />
           </TouchableOpacity>
 
-          {/* 큰 글씨 24 */}
-          <ScaledText style={ChatStyles.headerTitle} fontSize={24}>
+          <ScaledText style={styles.headerTitle} fontSize={24}>
             채팅 목록
           </ScaledText>
 
           {isSelectionMode ? (
-            <TouchableOpacity style={ChatStyles.headerButton} onPress={handleDelete}>
-              {/* 중간 글씨 20 */}
-              <ScaledText style={ChatStyles.headerButtonPrimary} fontSize={20}>
+            <TouchableOpacity style={styles.headerButton} onPress={handleDelete}>
+              <ScaledText style={styles.deleteButtonText} fontSize={20}>
                 삭제
               </ScaledText>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={ChatStyles.headerButton} onPress={() => setIsSelectionMode(true)}>
-              {/* 중간 글씨 20 */}
-              <ScaledText style={ChatStyles.headerButtonPrimary} fontSize={20}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => setIsSelectionMode(true)}>
+              <ScaledText style={styles.selectButtonText} fontSize={20}>
                 선택
               </ScaledText>
             </TouchableOpacity>
           )}
         </View>
 
-        {chats.length === 0 ? (
-          <View style={ChatStyles.emptyContainer}>
-            <Icon name="chatbubbles-outline" size={64} color={colors.border} />
-            {/* 중간 글씨 20 */}
-            <ScaledText style={ChatStyles.emptyText} fontSize={20}>
+        {chatLists.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Icon name="chatbubbles-outline" size={64} color="#B8E6EA" />
+            <ScaledText style={styles.emptyTitle} fontSize={20}>
               채팅 내역이 없습니다
             </ScaledText>
-            {/* 작은 글씨 18 */}
-            <ScaledText style={ChatStyles.emptySubtext} fontSize={18}>
+            <ScaledText style={styles.emptySubtitle} fontSize={18}>
               손주와 새로운 대화를 시작해보세요
             </ScaledText>
           </View>
         ) : (
           <FlatList
-            data={chats}
+            data={chatLists}
             renderItem={renderChatItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.chat_list_num.toString()}
             contentContainerStyle={styles.listContent}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
           />
         )}
 
         {isSelectionMode && (
           <View style={styles.cancelButtonContainer}>
             <TouchableOpacity
-              style={ChatStyles.secondaryButton}
+              style={styles.cancelButton}
               onPress={() => {
                 setIsSelectionMode(false);
                 setSelectedItems([]);
               }}
             >
-              {/* 중간 글씨 20 */}
-              <ScaledText style={ChatStyles.secondaryButtonText} fontSize={20}>
+              <ScaledText style={styles.cancelButtonText} fontSize={20}>
                 취소
               </ScaledText>
             </TouchableOpacity>
@@ -273,10 +255,25 @@ const ChatList = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9F2F5',
+    backgroundColor: '#B8E9F5',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    paddingHorizontal: 16,
+    backgroundColor: '#B8E9F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#B8E6EA',
   },
   headerButton: {
     padding: 8,
+    minWidth: 60,
+  },
+  headerTitle: {
+    fontWeight: '600',
+    color: '#2D4550',
   },
   selectButtonText: {
     color: '#02BFDC',
@@ -285,14 +282,6 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: '#FF5252',
     fontWeight: '600',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: '#7A9CA5',
   },
   emptyContainer: {
     flex: 1,
@@ -309,16 +298,6 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     color: '#7A9CA5',
     marginBottom: 24,
-  },
-  startChatButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: '#02BFDC',
-    borderRadius: 12,
-  },
-  startChatText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
   listContent: {
     padding: 16,
@@ -341,35 +320,16 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#02BFDC',
   },
-  chatIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#E8F8FA',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
   chatContent: {
     flex: 1,
   },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
   chatTitle: {
-    flex: 1,
     color: '#2D4550',
     fontWeight: '600',
-    marginRight: 8,
+    marginBottom: 4,
   },
   chatDate: {
     color: '#7A9CA5',
-  },
-  chatMessage: {
-    color: '#5B8A95',
   },
   checkbox: {
     width: 24,

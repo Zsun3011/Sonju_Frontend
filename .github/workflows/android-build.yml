@@ -1,0 +1,37 @@
+name: Android Build (Debug)
+
+on:
+  push:
+    branches: [ "main" ] # main 브랜치에 코드가 올라오면 실행
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 내 코드(Frontend 폴더)를 서버로 가져오기
+      - uses: actions/checkout@v3
+
+      # 2. 자바(Java) 설치하기 (안드로이드 빌드 필수품)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 3. Gradle 권한 부여 (리눅스 서버라 권한 필요)
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      # 4. APK 빌드 시작! (여기서 시간이 좀 걸림)
+      - name: Build with Gradle
+        working-directory: ./android
+        run: ./gradlew assembleDebug
+
+      # 5. 만들어진 APK 파일을 GitHub 홈페이지에 업로드
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
